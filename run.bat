@@ -1,0 +1,3 @@
+echo Running Game...
+
+python abyssaleclipse.py --cards

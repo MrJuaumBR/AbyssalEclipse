@@ -1,0 +1,20 @@
+
+Cards:
+  ✔ Draw Icon (Movement Speed) @done(24-12-12 12:21)
+  ✔ Draw Icon (Attack Damage) @done(24-12-12 12:24)
+  ✔ Draw Icon (Reload Speed) @done(24-12-12 12:27)
+  ✔ Draw Icon (Health) @done(24-12-12 12:30)
+  ✔ Draw Icon (Luck) @done(24-12-12 12:37)
+  ✔ Draw Icon (Nuketown) @done(24-12-12 12:40)
+  ✔ Draw Icon (Repeater) @done(24-12-12 19:01)
+  ✔ Draw Icon (Berserker) @done(24-12-12 18:53)
+  ✔ Draw Icon (Vampire) @done(24-12-12 18:46)
+  ✔ Draw Icon (Ninja) @done(24-12-12 19:11)
+  ✔ Draw Icon (Assasin) @done(24-12-12 19:49)
+  ✔ Draw Icon (Statsless) @done(24-12-12 19:18)
+  ✔ Insert Icons @done(24-12-12 19:59)
+
+Game:
+  ☐ Implement Cards into the game
+  ☐ Create Player Class
+  ☐ Create World Class
