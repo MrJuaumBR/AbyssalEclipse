@@ -36,11 +36,11 @@ Rarirty = {
     },
     "legendary":{
         "color":pge.Colors.BLACK,
-        "chance":7
+        "chance":10
     },
     "mythic":{
         "color":pge.Colors.RED,
-        "chance":4
+        "chance":1
     }
 }
 
@@ -274,6 +274,14 @@ class Assasin(Card):
 class Statsless(Card):
     def __init__(self):
         super().__init__("Statsless", "+10% in all stats\n\n Huh? Looks like you aren't mastering nothing? ", "mythic",(352,0,32,32))
+
+class MasterOfGravity(Card):
+    def __init__(self):
+        super().__init__("Master of Gravity", "You become the Master of Gravity, increasing your speed by 5% and decreasing that of enemies by 10%.\n\n Already controls part of space, and now, time?","mythic",(0,32,32,32))
+        
+class Bloodlust(Card):
+    def __init__(self):
+        super().__init__("Bloodlust", "You will scare enemies around you every 15s, paralyzing them for 3s.\n\n It seems to me that you are a little angry?", "mythic",(32,32,32,32))
 
 class CardHandler:
     def __init__(self):

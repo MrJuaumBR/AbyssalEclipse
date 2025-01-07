@@ -13,8 +13,12 @@ Cards:
   ✔ Draw Icon (Assasin) @done(24-12-12 19:49)
   ✔ Draw Icon (Statsless) @done(24-12-12 19:18)
   ✔ Insert Icons @done(24-12-12 19:59)
+  ✔ Update Nuke Icon @started(25-01-06 18:28) @done(25-01-06 18:45) @lasted(17m21s)
+  ✔ Draw Icon (Bloodlust) @done(25-01-06 18:28)
+  ✔ Draw Icon (Master of Gravity) @done(25-01-06 18:28)
 
 Game:
+  ✔ Floor Base Sprite @done(25-01-06 19:01)
   ☐ Implement Cards into the game
   ☐ Create Player Class
   ☐ Create World Class
