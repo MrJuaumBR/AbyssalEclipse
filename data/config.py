@@ -72,6 +72,11 @@ GAME_TRAIL_COLOR_OPTIONS = [
     "Random"
 ]
 
+GAME_SPEED_MEASURE_OPTIONS = [
+    'px/s',
+    'm/s'
+]
+
 class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     fullscreen:bool
     window_resolution:int
@@ -80,6 +85,7 @@ class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     dynamic_fps:bool
     dynamic_mouse_wheel:bool
     debug:bool
+    speed_measure:int
     vsync:bool
     mouse_trail:bool
     trail_color:int
@@ -94,7 +100,8 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "debug":False,
     "vsync":False,
     "mouse_trail":True,
-    "trail_color":1
+    "trail_color":1,
+    'speed_measure':0
 }
 
 
@@ -151,6 +158,7 @@ GD = _GameData()
 # Game Engine
 pge = pygameengine.PyGameEngine()
 GAME_SCREEN = pge.createScreen(*GD.screen,pg.HWSURFACE,VSync=CONFIG['vsync'])
+pge.setScreenTitle(GAME['name'])
 
 CURRENT_WINDOW_SIZE = pg.display.Info()
 DEFAULT_WINDOW_SIZE = (800,600) # Default screen size is 800x600
@@ -410,7 +418,7 @@ class ScreenHandler(object):
         self.SCREENS_RELATIONS.append(options.Options(self))
         self.SCREENS_RELATIONS.append(leaderboard.Leaderboard(self))
         self.SCREENS_RELATIONS.append(licenses.Licenses(self))
-        # self.SCREENS_RELATIONS.append(game.Game(self))
+        self.SCREENS_RELATIONS.append(game.Game(self))
         
         self.current_screen = 0x0
         self.disableAutoUpdate()

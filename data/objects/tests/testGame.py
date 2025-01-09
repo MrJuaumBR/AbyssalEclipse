@@ -236,22 +236,23 @@ for i in range(random.randint(5,10)):
     World.add(e)
     print(f'\t {i} | {ex} | {ey}')
 
-while True:
-    for event in pg.event.get():
-        if event.type == QUIT:
-            pg.quit()
-            sys.exit()
-        elif event.type == KEYDOWN:
-            if event.key == K_F1:
-                for enemy in World.sprites():
-                    if enemy.type == 'enemy':
-                        enemy:_Enemy
-                        print(enemy.position)
-            
-    
-    screen.fill((0,0,0))
-    World.draw()
-    render_text((5,5),f'Nº Of Bullets: {len(Player.bullets or [])}      Nº Of Enemys:{World.enemysCount()}      Shift(X,Y):{World.shift.xy}',(255,255,255))
-    clock.tick(60)
-    pg.display.flip()
-    World.update()
+def run():
+    while True:
+        for event in pg.event.get():
+            if event.type == QUIT:
+                pg.quit()
+                sys.exit()
+            elif event.type == KEYDOWN:
+                if event.key == K_F1:
+                    for enemy in World.sprites():
+                        if enemy.type == 'enemy':
+                            enemy:_Enemy
+                            print(enemy.position)
+                
+        
+        screen.fill((0,0,0))
+        World.draw()
+        render_text((5,5),f'Nº Of Bullets: {len(Player.bullets or [])}      Nº Of Enemys:{World.enemysCount()}      Shift(X,Y):{World.shift.xy}',(255,255,255))
+        clock.tick(60)
+        pg.display.flip()
+        World.update()

@@ -1,49 +1,69 @@
-# Importando as coisas de "..config"
 from ..config import *
 
-# Importando as bibliotecas necessárias
-import pygame
-from pygame.locals import *
-from pygame.sprite import Group
+floor_img = pg.image.load(GAME_PATH_DATA + '/assets/textures/floor.png')
+floor_width, floor_height = floor_img.get_width(), floor_img.get_height()
+floor_surface = pg.Surface((GD.screen[0] + floor_width, GD.screen[1] + floor_height))
 
-# Classe World que herda de pg.sprite.Group
-class World(Group):
+# Fill a surface with floor_img, for blit after
+for x in range(0, int(GD.screen[0]//floor_width)+2):
+    for y in range(0, int(GD.screen[1]//floor_height)+1):
+        floor_surface.blit(floor_img, (x * floor_width, y * floor_height))
+
+
+
+from .player import Player
+
+class World(pg.sprite.Group):
+    surface:pg.SurfaceType = None
+    surface_size:tuple[int,int] = (0,0)
+    offset:pg.math.Vector2 = pg.Vector2(0,0)
+
+    player:Player = None
     def __init__(self):
         super().__init__()
-        # Carregando a imagem do chão
-        self.floor_image = pygame.image.load('../assets/textures/floor.png')
-        self.floor_rect = self.floor_image.get_rect()
-        self.floor_rect.width = 128
-        self.floor_rect.height = 64
+        self.surface = pg.Surface(GD.screen,pg.SRCALPHA)
+        self.surface_size = self.surface.get_size()
+        
+        self.player = Player(self)
 
-        # Criando o mapa
-        self.map_width = 2048
-        self.map_height = 2048
-        self.map_surface = pygame.Surface((self.map_width, self.map_height))
-        self.map_surface.fill((255, 255, 255))
+        
+    def draw_floor(self, offset_x, offset_y):
+        """
+        Draw the floor
+        
+        floor_surface will be blit into self.surface by using offset_x and offset_y for draw
+        
+        i want the floor to look like it is infinity
+        """
+        # Calculate the modulo of the offset to ensure it stays within the bounds of the floor surface
+        mod_x = offset_x % floor_width
+        mod_y = offset_y % floor_height
 
-        # Repetindo o chão para criar o mapa
-        for x in range(0, self.map_width, self.floor_rect.width):
-            for y in range(0, self.map_height, self.floor_rect.height):
-                self.map_surface.blit(self.floor_image, (x, y))
-
-        # Criando a câmera
-        self.camera = pygame.Rect(0, 0, 640, 480)  # ajuste os valores conforme necessário
-
-    # Método para renderizar tudo
-    def render(self, screen):
-        # Preenchendo a tela com branco
-        screen.fill((255, 255, 255))
-
-        # Renderizando o mapa
-        screen.blit(self.map_surface, (0, 0))
-
-        # Renderizando todas as sprites
-        for sprite in self.sprites():
-            sprite.render(screen)
-
-    # Método para atualizar a câmera
+        # Draw the floor surface in a 2x2 grid to create the illusion of infinity
+        self.surface.blit(floor_surface, (-mod_x, -mod_y))
+        self.surface.blit(floor_surface, (-mod_x + floor_width, -mod_y))
+        self.surface.blit(floor_surface, (-mod_x, -mod_y + floor_height))
+        self.surface.blit(floor_surface, (-mod_x + floor_width, -mod_y + floor_height))
+        
+        
     def update(self):
-        # Atualizando a câmera com base na posição do player
-        # (vou criar o código para isso em player.py)
-        pass
+        for sprite in self.sprites():
+            sprite.update()
+            
+    def draw(self):
+        self.surface.fill(pge.Colors.DARKBLUE.rgb)
+        self.draw_floor(self.offset.x, self.offset.y)
+
+        offset = self.offset
+        blit_surface = self.surface.blit
+
+        for sprite in self.sprites():
+            if sprite.type != 'player':
+                offset_rect = sprite.rect.move(offset)
+                blit_surface(sprite.surface, offset_rect)
+
+        screen_rect = pge.screen.get_rect()
+        surface_rect = self.surface.get_rect()
+        surface_rect.center = screen_rect.center
+
+        pge.screen.blit(self.surface, surface_rect)

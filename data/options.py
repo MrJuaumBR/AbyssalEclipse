@@ -19,10 +19,13 @@ VsyncCheck = pw.Checkbox(pge, Position((20,330))*RATIO, PS18, "USE VSYNC", [pge.
 # Debug, Checkbox
 DebugCheck = pw.Checkbox(pge, Position((20,370))*RATIO, PS18, "DEBUG", [pge.Colors.YELLOW, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Debug (Requires Restart)",PS14))
 
+# Measure Speed, Select
+MeasureSpeedSelect = pw.Select(pge, Position((50,410))*RATIO, PS18, [pge.Colors.DARKBROWN, pge.Colors.ALMOND, pge.Colors.BLACK], [str(i) for i in GAME_SPEED_MEASURE_OPTIONS], CONFIG['speed_measure'], tip=("Measure Speed",PS14))
+
 # Trail options
 # Trail, Checkbox
-TrailCheck = pw.Checkbox(pge, Position((20, 435))*RATIO, PS16, 'Mouse Trail', [pge.Colors.YELLOW, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Mouse Trail",PS14))
-TrailColor = pw.Dropdown(pge, Position((200, 435))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], ['Red','Green','Blue','Yellow','Purple',"White","Random"], PS16, current_text=CONFIG['trail_color'])
+TrailCheck = pw.Checkbox(pge, Position((20, 485))*RATIO, PS16, 'MOUSE TRAIL', [pge.Colors.YELLOW, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Mouse Trail",PS14))
+TrailColor = pw.Dropdown(pge, Position((200, 485))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], ['Red','Green','Blue','Yellow','Purple',"White","Random"], PS16, current_text=CONFIG['trail_color'])
 
 class Options(Screen):
     id:int = 0x1
@@ -41,11 +44,12 @@ class Options(Screen):
         self.widgets.append(DynMouseWhlCheck)
         self.widgets.append(VsyncCheck)
         self.widgets.append(DebugCheck)
+        self.widgets.append(MeasureSpeedSelect)
         self.widgets.append(TrailCheck)
         self.widgets.append(TrailColor)
     def draw(self):
-        pge.draw_rect(Position((10,400))*RATIO,Position((300,190))*RATIO,COLOR_DARK_ALMOND,2,pge.Colors.GRAY,alpha=128)
-        pge.draw_text(Position((15,405))*RATIO,'Trail Options', PS16,pge.Colors.WHITE)
+        pge.draw_rect(Position((10,450))*RATIO,Position((300,80))*RATIO,COLOR_DARK_ALMOND,2,pge.Colors.GRAY,alpha=128)
+        pge.draw_text(Position((15,455))*RATIO,'Trail Options', PS16,pge.Colors.WHITE)
         if self.frames_runned == 0:
             self.frames_runned = 1
             self.cfg = CONFIG
@@ -58,6 +62,7 @@ class Options(Screen):
             DynMouseWhlCheck.value = self.cfg['dynamic_mouse_wheel']
             VsyncCheck.value = self.cfg['vsync']
             DebugCheck.value = self.cfg['debug']
+            MeasureSpeedSelect.value = self.cfg['speed_measure']
             TrailCheck.value = self.cfg['mouse_trail']
             TrailColor.current_text = self.cfg["trail_color"]
         if BackButtonOptions.value:
@@ -72,6 +77,7 @@ class Options(Screen):
         self.cfg['dynamic_mouse_wheel'] = DynMouseWhlCheck.value
         self.cfg['vsync'] = VsyncCheck.value
         self.cfg['debug'] = DebugCheck.value
+        self.cfg['speed_measure'] = MeasureSpeedSelect.value
         self.cfg['mouse_trail'] = TrailCheck.value
         self.cfg['trail_color'] = TrailColor.current_text
             
@@ -88,6 +94,7 @@ class Options(Screen):
         CONFIG['fps'] = self.cfg['fps']
         CONFIG['debug'] = self.cfg['debug']
         CONFIG['vsync'] = self.cfg['vsync']
+        CONFIG['speed_measure'] = self.cfg['speed_measure']
         CONFIG['mouse_trail'] = self.cfg['mouse_trail']
         CONFIG['trail_color'] = self.cfg['trail_color']
         self.cfg = CONFIG

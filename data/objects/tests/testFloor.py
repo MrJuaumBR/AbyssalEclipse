@@ -41,35 +41,37 @@ def draw_floor(offset_x, offset_y):
         for y in range(-floor_height, SCREEN_HEIGHT, floor_height):
             screen.blit(floor_surface, (x - mod_x, y - mod_y))
 
-offset_x, offset_y = 0, 0
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] or keys[pygame.K_UP]:
-        offset_y -= player_speed
-    if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-        offset_y += player_speed
-    if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-        offset_x -= player_speed
-    if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-        offset_x += player_speed
+def run():
+    offset_x, offset_y = 0, 0
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-    # Draw the floor
-    screen.fill((0, 0, 0))  # Clear screen with black
-    draw_floor(offset_x, offset_y)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            offset_y -= player_speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            offset_y += player_speed
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            offset_x -= player_speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            offset_x += player_speed
 
-    # Draw the player
-    screen.blit(player_img, player_pos)
+        # Draw the floor
+        screen.fill((0, 0, 0))  # Clear screen with black
+        draw_floor(offset_x, offset_y)
 
-    # Display FPS
-    fps = int(clock.get_fps())
-    fps_text = font.render(f'FPS: {fps}', True, (255, 255, 255))
-    screen.blit(fps_text, (10, 10))
+        # Draw the player
+        screen.blit(player_img, player_pos)
 
-    pygame.display.update()
-    clock.tick(60)  # Set to 60 FPS
+        # Display FPS
+        fps = int(clock.get_fps())
+        fps_text = font.render(f'FPS: {fps}', True, (255, 255, 255))
+        screen.blit(fps_text, (10, 10))
+
+        pygame.display.update()
+        clock.tick(60)  # Set to 60 FPS

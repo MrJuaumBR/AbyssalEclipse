@@ -1,4 +1,15 @@
 
+# Data Stores
+*.pydb
+*.pyb
+*.pyd
+*.data
+*.pydata
+*.db
+
+# Output Sheet
+*.xls
+
 .vscode
 # Byte-compiled / optimized / DLL files
 __pycache__/

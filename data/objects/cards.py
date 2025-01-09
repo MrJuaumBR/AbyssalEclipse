@@ -73,7 +73,7 @@ class Card:
         
         if icon_rect is not None:
             self.icon = Icons_spritesheet.image_at(pg.Rect(*icon_rect),-1)
-            self.icon = pg.transform.scale(self.icon, Position((64,64))*RATIO)
+            self.icon = pg.transform.scale(self.icon, Position((48,48))*RATIO)
         else:
             self.icon = None
         
@@ -84,23 +84,23 @@ class Card:
     def set_widgets(self):
         self.surface.fill(COLOR_DARK_ALMOND.rgb)
         
-        self.tip = pw.Tip(pge, f'Name: {str(self.cardname).capitalize()}\nRarity: {str(self.rarity).capitalize()}', PS12)
+        self.tip = pw.Tip(pge, f'Name: {str(self.cardname).capitalize()}\nRarity: {str(self.rarity).capitalize()}', PS14)
         
         # Draw Title
-        pge.draw_text(Position((5,5))*RATIO, str(self.cardname).capitalize(), PS14, Rarirty[self.rarity]['color'], surface=self.surface)
+        pge.draw_text(Position((5,5))*RATIO, str(self.cardname).capitalize(), PS18, Rarirty[self.rarity]['color'], surface=self.surface)
         
         # Draw Icon
         if self.icon is not None:
-            self.surface.blit(self.icon, Position((0,15))*RATIO)
+            self.surface.blit(self.icon, Position((66,20))*RATIO)
             
         # Draw Description
-        pge.draw_rect(Position((2,81))*RATIO, Position((self.surface.get_size()[0]-4, self.surface.get_size()[1]-83))*RATIO, pge.Colors.BROWN, surface=self.surface)
+        pge.draw_rect(Position((2,70))*RATIO, Position((self.surface.get_size()[0]-4, self.surface.get_size()[1]-72))*RATIO, pge.Colors.BROWN, surface=self.surface)
         
         lines = self.get_lines(self.description)
-        y = 82
+        y = 71
         for line in lines.values():
-            pge.draw_text(Position((5,y))*RATIO, line, PS12, pge.Colors.WHITE, surface=self.surface)
-            y += 13
+            pge.draw_text(Position((5,y))*RATIO, line, PS14, pge.Colors.WHITE, surface=self.surface)
+            y += 15
     
     def on_hover(self):
         if self.rect.collidepoint(pge.mouse.pos): self.hover = True
@@ -247,6 +247,18 @@ class Luck5(Card):
         super().__init__("Luck", "This card gives you 50% more luck.\n\n Miss Murphy? Where are you?", "legendary",(128,0,32,32))
 
 # Abilities
+class Shield(Card):
+    def __init__(self):
+        super().__init__("Shield", "shield with the ability to negate damage of 20% of your HP, after being destroyed it recovers in 10s.\n\n Scaredy cat!", "uncommon",(128,32,32,32))
+
+class GrownManTear(Card):
+    def __init__(self):
+        super().__init__("Grown Man Tear", "Negates all damage for 5s after losing 15% health with a 30s cooldown.\n\n Men don't cry, but when necessary, the suitcase is already out.","legendary",(64,32,32,32))
+
+class MermaidTear(Card):
+    def __init__(self):
+        super().__init__("Mermaid Tear", "When your health is below 60%, your regeneration is increased by 15%.\n\n You made a mermaid cry...","legendary",(96,32,32,32))
+
 class Nuketown(Card):
     def __init__(self):
         super().__init__("Nuke Town", "This card gives you a nuke. That happens every 30 seconds.\n\n We are not in CoD.", "mythic",(160,0,32,32))
@@ -295,8 +307,8 @@ class CardHandler:
         uncommon = 20%
         rare = 18%
         epic = 16%
-        legendary = 7%
-        mythic = 4%
+        legendary = 10%
+        mythic = 1%
         
         Total = 100
         """

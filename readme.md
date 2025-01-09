@@ -8,7 +8,7 @@ You can see all the cards by running the command:
 ```shell
 python abyssaleclipse.py --cards
 ```
-Or Simply by running the [run.bat](run.bat)
+Or Simply by running the [run.bat](run.bat) and choosing 1
 
 ## Where we are now?
 <table>
