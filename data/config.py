@@ -5,6 +5,7 @@ from pygameengine import pg
 import pygameengine.widgets as pw
 from pygameengine.objects import spritesheet
 from pygameengine.objects import color as reqColor
+from typing import Literal
 
 
 
@@ -165,6 +166,9 @@ DEFAULT_WINDOW_SIZE = (800,600) # Default screen size is 800x600
 RATIO_WIDTH = CURRENT_WINDOW_SIZE.current_w / DEFAULT_WINDOW_SIZE[0]
 RATIO_HEIGHT = CURRENT_WINDOW_SIZE.current_h / DEFAULT_WINDOW_SIZE[1]
 SRATIO = (RATIO_WIDTH, RATIO_HEIGHT) 
+
+# Activate Controller Support
+pge.setMouseEmulation(True)
 
 class RatioType():
     def __init__(self, ratio_vector:tuple[int,int]) -> None:
@@ -366,6 +370,11 @@ class Screen(object):
                 self.SCH.changeScreen(GD._old_cs)
 
                 self.exiting()
+            elif pge.joystick.main: # Has a controller/joystick
+                if pge.joystick.main.getButtonByString("b"):
+                    self.SCH.changeScreen(GD._old_cs)
+                    self.exiting()
+                
 
 def LoadNews() -> str:
     """

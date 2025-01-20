@@ -1,8 +1,8 @@
 from .config import *
 # +++ Leaderboard +++ #
 
-BackButtonLeaderboard = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK",[COLOR_DARK_RED, COLOR_DARK_ALMOND])
-OrderDropdown = pw.Dropdown(pge, Position((65,55))*RATIO, [COLOR_DARK_BLUE,COLOR_DARK_ALMOND, COLOR_WHITE], ['By Score','By Date','By Username'], PS16, current_text=1, tip=("Order By",PS14))
+BackButtonLeaderboard = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_DARK_RED, COLOR_DARK_ALMOND])
+OrderDropdown = pw.Dropdown(pge, Position((80,55))*RATIO, [COLOR_DARK_BLUE,COLOR_DARK_ALMOND, COLOR_WHITE], ['By Score','By Date','By Username'], PS16, current_text=1, tip=("Order By",PS14))
 StartNewRunButton = pw.Button(pge, Position((15,550))*RATIO, PS16, "START NEW RUN",[pge.Colors.GREEN,COLOR_DARK_ALMOND])
 UsernameTextbox = pw.Textbox(pge, Position((145,550))*RATIO, 25*RATIO.y, colors=[COLOR_DARK_ALMOND,pge.Colors.ALMOND,pge.Colors.BLACK, pge.Colors.WHITE], font=PS16, text=f"{GD.username}", tip=("Username that will save score",PS14), placeholder="Enter your username...")
 

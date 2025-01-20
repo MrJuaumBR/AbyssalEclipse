@@ -1,6 +1,6 @@
 from .config import *
 # +++ OPTIONS MENU SCREEN +++ #
-BackButtonOptions = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK",[COLOR_DARK_RED,COLOR_DARK_ALMOND])
+BackButtonOptions = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_DARK_RED,COLOR_DARK_ALMOND])
 
 # Screen Resolution
 ScreenResSelect = pw.Select(pge, Position((50,90))*RATIO, PS18, [pge.Colors.DARKBROWN, pge.Colors.ALMOND, pge.Colors.BLACK], [str(i) for i in GAME_WINDOW_RESOLUTION_OPTIONS], CONFIG['window_resolution'], tip=("Window Resolution (Requires Restart)",PS14))

@@ -37,7 +37,8 @@ class Game(Screen):
         self.world:World = World()
     
     def _update(self):
-        if (pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4) and self.pause_timer <= 0:
+        JOYSTICK_CONNECTED = True if pge.joystick.main else False
+        if (pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4 or (JOYSTICK_CONNECTED and pge.joystick.main.getButtonByString("start"))) and self.pause_timer <= 0:
             self.paused = not self.paused
             self.pause_timer = pge.TimeSys.s2f(0.32)
             
@@ -66,6 +67,7 @@ class Game(Screen):
     
     def draw(self):
         self.world.draw()
+        self.world.player.draw()
         pge.draw_text(Position((5,15))*RATIO, f'Speed: {round(self.world.player.register_speed[GAME_SPEED_MEASURE_OPTIONS[CONFIG["speed_measure"]]],2)} {GAME_SPEED_MEASURE_OPTIONS[CONFIG["speed_measure"]]}', PS12, pge.Colors.WHITE)
         if self.paused:
             pge.draw_rect(Position((5,5))*RATIO,Position((390,590))*RATIO, COLOR_DARK_ALMOND, 3, pge.Colors.BLOODRED, alpha=180)

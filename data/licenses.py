@@ -1,6 +1,6 @@
 from .config import *
 # +++ LICENSES +++ #
-BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK",[COLOR_DARK_RED,COLOR_DARK_ALMOND])
+BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_DARK_RED,COLOR_DARK_ALMOND])
 
 class Licenses(Screen):
     id:int = 0x3
