@@ -135,6 +135,8 @@ CONFIG:GAME_DEFAULT_CFG_TYPE = GAME_DEFAULT_CFG
 
 # Game Engine
 pge = pygameengine.PyGameEngine()
+CURRENT_WINDOW_SIZE = pg.display.Info()
+
 
 # Setup Database
 pyd = JPyDB.pyDatabase(f"{GAME_PATH_DATA}/data",'pydb')
@@ -171,9 +173,6 @@ pge.setScreenTitle(GAME['name'])
 pge.setScreenIcon(pge.loadImage(f"{GAME_PATH_TEXTURES}/icon.png"))
 
 GAME_MENU_BACKGROUND = pg.transform.scale(pge.loadImage(f"{GAME_PATH_TEXTURES}/menubg.png"), GD.screen)
-
-CURRENT_WINDOW_SIZE = pg.display.Info()
-
 
     
 # Fast Fix for new Config
