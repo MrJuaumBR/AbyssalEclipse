@@ -24,7 +24,7 @@ MeasureSpeedSelect = pw.Select(pge, Position((50,410))*RATIO, PS18, [pge.Colors.
 
 # Trail options
 # Trail, Checkbox
-TrailCheck = pw.Checkbox(pge, Position((20, 485))*RATIO, PS16, 'MOUSE TRAIL', [pge.Colors.YELLOW, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Mouse Trail",PS14))
+TrailCheck = pw.Checkbox(pge, Position((20, 485))*RATIO, PS16, 'MOUSE TRAIL', [pge.Colors.WHITE, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Mouse Trail (This can cause loss of performance)",PS14))
 TrailColor = pw.Dropdown(pge, Position((200, 485))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], ['Red','Green','Blue','Yellow','Purple',"White","Random"], PS16, current_text=CONFIG['trail_color'])
 
 class Options(Screen):

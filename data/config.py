@@ -92,7 +92,7 @@ class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     trail_color:int
 
 GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
-    "fullscreen":False,
+    "fullscreen":True,
     "window_resolution":1,
     "fps":1,
     "show_fps":False,
@@ -106,12 +106,22 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
 }
 
 
-
 CONFIG:GAME_DEFAULT_CFG_TYPE = GAME_DEFAULT_CFG
 
 
 
 
+
+
+
+
+
+
+
+
+
+# Game Engine
+pge = pygameengine.PyGameEngine()
 
 # Setup Database
 pyd = JPyDB.pyDatabase(f"{GAME_PATH_DATA}/data",'pydb')
@@ -119,23 +129,15 @@ db = pyd.database
 
 if not ('config' in db.tables.keys()):
     db.create_table('config', [('data',dict)])
+    nearest_resolution = min(GAME_WINDOW_RESOLUTION_OPTIONS, key=lambda x: abs(x[0] - CURRENT_WINDOW_SIZE.current_w) + abs(x[1] - CURRENT_WINDOW_SIZE.current_h))
+    nearest_resolution = GAME_WINDOW_RESOLUTION_OPTIONS.index(nearest_resolution)
+    GAME_DEFAULT_CFG['window_resolution'] = nearest_resolution
     db.add_value('config','data',0,GAME_DEFAULT_CFG)
 else:
     CONFIG = db.get_value('config','data',0)
 if not ('leaderboard' in db.tables.keys()):
     db.create_table('leaderboard', [('data',dict)])
     db.add_value('leaderboard','data',0,{})
-    
-# Fast Fix for new Config
-for key in GAME_DEFAULT_CFG.keys():
-    if key not in CONFIG.keys():
-        CONFIG[key] = GAME_DEFAULT_CFG[key]
-        
-db.save()
-
-
-
-
 
 
 # Game Handling
@@ -151,21 +153,28 @@ class _GameData:
 GD = _GameData()
 
 
-
-
-
-
-
-# Game Engine
-pge = pygameengine.PyGameEngine()
-GAME_SCREEN = pge.createScreen(*GD.screen,pg.HWSURFACE,VSync=CONFIG['vsync'])
+GAME_SCREEN = pge.createScreen(*GD.screen, pg.FULLSCREEN|pg.SCALED if CONFIG['fullscreen'] else pg.HWSURFACE,VSync=CONFIG['vsync'])
 pge.setScreenTitle(GAME['name'])
 
+
+
 CURRENT_WINDOW_SIZE = pg.display.Info()
+
+
+    
+# Fast Fix for new Config
+for key in GAME_DEFAULT_CFG.keys():
+    if key not in CONFIG.keys():
+        CONFIG[key] = GAME_DEFAULT_CFG[key]
+        
+db.save()
+
 DEFAULT_WINDOW_SIZE = (800,600) # Default screen size is 800x600
 RATIO_WIDTH = CURRENT_WINDOW_SIZE.current_w / DEFAULT_WINDOW_SIZE[0]
 RATIO_HEIGHT = CURRENT_WINDOW_SIZE.current_h / DEFAULT_WINDOW_SIZE[1]
 SRATIO = (RATIO_WIDTH, RATIO_HEIGHT) 
+
+
 
 # Activate Controller Support
 pge.setMouseEmulation(True)

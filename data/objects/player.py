@@ -52,7 +52,7 @@ class Player(pg.sprite.Sprite):
         for key in ['top','left','right','bottom','idle']:
             self.animations[key] = []
             for frame in Frames_Positions[(key if key != 'right' else 'left')]:
-                s = ss.image_at(Rect(frame[0],frame[1],32,32),-1)
+                s = ss.image_at(Rect(frame[0],frame[1],32,32),0)
                 s = pg.transform.scale(s, Position((32,32))*RATIO)
                 if key == 'right':
                     s = pg.transform.flip(s, True, False)
@@ -110,7 +110,7 @@ class Player(pg.sprite.Sprite):
             self.current_frame = 0
         
         # Update Current Frame
-        self.current_frame += 0.1
+        self.current_frame += 0.3
         if self.current_frame > len(self.animations[self.current_state]):
             self.current_frame = 0
         

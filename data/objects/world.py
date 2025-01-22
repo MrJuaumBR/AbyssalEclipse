@@ -51,19 +51,19 @@ class World(pg.sprite.Group):
             sprite.update()
             
     def draw(self):
-        self.surface.fill(pge.Colors.DARKBLUE.rgb)
-        self.draw_floor(self.offset.x, self.offset.y)
+        screen = pge.screen
+        screen.fill(pge.Colors.DARKBLUE.rgb)
 
         offset = self.offset
-        blit_surface = self.surface.blit
 
+        self.draw_floor(offset.x, offset.y)
         for sprite in self.sprites():
             if sprite.type != 'player':
-                offset_rect = sprite.rect.move(offset)
-                blit_surface(sprite.surface, offset_rect)
+                sprite_rect = sprite.rect.move(offset)
+                screen.blit(sprite.surface, sprite_rect)
 
-        screen_rect = pge.screen.get_rect()
+        screen_rect = screen.get_rect()
         surface_rect = self.surface.get_rect()
         surface_rect.center = screen_rect.center
-
-        pge.screen.blit(self.surface, surface_rect)
+        
+        screen.blit(self.surface, surface_rect)
