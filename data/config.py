@@ -118,18 +118,20 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     'floor_color':0
 }
 
+class GAME_WEAPON_ATTRIBUTTES_TYPE(typing.TypedDict):
+    damage:float
+    speed:float
+    lifetime:float
+    hits:int
+
+GAME_DEFAULT_WEAPON_ATTRIBUTTES:GAME_WEAPON_ATTRIBUTTES_TYPE = {
+    "damage":5.0,
+    "speed":5.0,
+    "lifetime":1.0,
+    "hits":1
+}
 
 CONFIG:GAME_DEFAULT_CFG_TYPE = GAME_DEFAULT_CFG
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -150,10 +152,13 @@ if not ('config' in db.tables.keys()):
     db.add_value('config','data',0,GAME_DEFAULT_CFG)
 else:
     CONFIG = db.get_value('config','data',0)
+    
 if not ('leaderboard' in db.tables.keys()):
     db.create_table('leaderboard', [('data',dict)])
     db.add_value('leaderboard','data',0,{})
 
+# Update CURRENT_WINDOW_SIZE
+CURRENT_WINDOW_SIZE:tuple[int,int] = GAME_WINDOW_RESOLUTION_OPTIONS[CONFIG['window_resolution']]
 
 # Game Handling
 class _GameData:
@@ -163,7 +168,8 @@ class _GameData:
     fps = GAME_FPS_OPTIONS[CONFIG['fps']]
     username:str = f'User{random.randint(10000,99999)}'
 
-    
+
+
     
 GD = _GameData()
 
@@ -183,8 +189,8 @@ for key in GAME_DEFAULT_CFG.keys():
 db.save()
 
 DEFAULT_WINDOW_SIZE = (800,600) # Default screen size is 800x600
-RATIO_WIDTH = CURRENT_WINDOW_SIZE.current_w / DEFAULT_WINDOW_SIZE[0]
-RATIO_HEIGHT = CURRENT_WINDOW_SIZE.current_h / DEFAULT_WINDOW_SIZE[1]
+RATIO_WIDTH = CURRENT_WINDOW_SIZE[0] / DEFAULT_WINDOW_SIZE[0]
+RATIO_HEIGHT = CURRENT_WINDOW_SIZE[1] / DEFAULT_WINDOW_SIZE[1]
 SRATIO = (RATIO_WIDTH, RATIO_HEIGHT) 
 
 

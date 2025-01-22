@@ -65,10 +65,10 @@ class Game(Screen):
     def draw(self):
         self.world.draw()
         self.world.player.draw()
-
+        # self.world.draw_projectiles()
         speed_measure = GAME_SPEED_MEASURE_OPTIONS[CONFIG["speed_measure"]]
-        speed = round(self.world.player.register_speed[speed_measure], 2)
-        pge.draw_text(Position((5, 15)) * RATIO, f'Speed: {speed} {speed_measure}', PS12, pge.Colors.WHITE)
+        pge.draw_text(Position((5, 15)) * RATIO, f'Speed: {round(self.world.player.register_speed[speed_measure], 2)} {speed_measure}', PS12, pge.Colors.WHITE)
+        pge.draw_text(Position((5, 30)) * RATIO, f'Projectiles: {len(self.world.projectiles)}', PS12, pge.Colors.WHITE)
 
         pause_elements = [ResumeButton, ExitToMenuButton, ExitGame]
         if self.paused:
@@ -82,4 +82,5 @@ class Game(Screen):
                 element.enable = False
     
     def exiting(self):
+        self.world = World()
         self.__dict__ = Game(self.SCH).__dict__
