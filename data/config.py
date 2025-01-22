@@ -75,7 +75,18 @@ GAME_TRAIL_COLOR_OPTIONS = [
 
 GAME_SPEED_MEASURE_OPTIONS = [
     'px/s',
-    'm/s'
+    'm/s',
+    'km/h',
+    'mph'
+]
+
+GAME_FLOOR_COLOR_OPTIONS = [
+    'red',
+    'green',
+    'blue',
+    'yellow',
+    'purple',
+    'orange'
 ]
 
 class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
@@ -90,6 +101,7 @@ class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     vsync:bool
     mouse_trail:bool
     trail_color:int
+    floor_color:int
 
 GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "fullscreen":True,
@@ -102,7 +114,8 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "vsync":False,
     "mouse_trail":True,
     "trail_color":1,
-    'speed_measure':0
+    'speed_measure':0,
+    'floor_color':0
 }
 
 
@@ -155,8 +168,9 @@ GD = _GameData()
 
 GAME_SCREEN = pge.createScreen(*GD.screen, pg.FULLSCREEN|pg.SCALED if CONFIG['fullscreen'] else pg.HWSURFACE,VSync=CONFIG['vsync'])
 pge.setScreenTitle(GAME['name'])
+pge.setScreenIcon(pge.loadImage(f"{GAME_PATH_TEXTURES}/icon.png"))
 
-
+GAME_MENU_BACKGROUND = pg.transform.scale(pge.loadImage(f"{GAME_PATH_TEXTURES}/menubg.png"), GD.screen)
 
 CURRENT_WINDOW_SIZE = pg.display.Info()
 
@@ -493,6 +507,8 @@ class ScreenHandler(object):
         return None
     
     def drawScreen(self):
+        if self.screen.id in [0x0,0x1,0x2]:
+            pge.screen.blit(GAME_MENU_BACKGROUND, (0,0))
         if self.screen != None:
             self.screen._update()
             self.screen.draw()

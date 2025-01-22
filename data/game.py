@@ -54,6 +54,7 @@ class Game(Screen):
             self.paused = False
             self.pause_timer = pge.TimeSys.s2f(0.32)
         elif ExitToMenuButton.value and self.pause_timer <= 0:
+            self.exiting()
             self.SCH.changeScreen(0x0)
         elif ExitGame.value and self.pause_timer <= 0:
             self.exiting()
@@ -81,4 +82,4 @@ class Game(Screen):
                 element.enable = False
     
     def exiting(self):
-        pass
+        self.__dict__ = Game(self.SCH).__dict__

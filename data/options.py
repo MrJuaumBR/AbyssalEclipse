@@ -22,10 +22,13 @@ DebugCheck = pw.Checkbox(pge, Position((20,370))*RATIO, PS18, "DEBUG", [pge.Colo
 # Measure Speed, Select
 MeasureSpeedSelect = pw.Select(pge, Position((50,410))*RATIO, PS18, [pge.Colors.DARKBROWN, pge.Colors.ALMOND, pge.Colors.BLACK], [str(i) for i in GAME_SPEED_MEASURE_OPTIONS], CONFIG['speed_measure'], tip=("Measure Speed",PS14))
 
-# Trail options
+# Visual Options
 # Trail, Checkbox
 TrailCheck = pw.Checkbox(pge, Position((20, 485))*RATIO, PS16, 'MOUSE TRAIL', [pge.Colors.WHITE, pge.Colors.ALMOND, pge.Colors.BLACK, pge.Colors.DARKBROWN], tip=("Mouse Trail (This can cause loss of performance)",PS14))
-TrailColor = pw.Dropdown(pge, Position((200, 485))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], ['Red','Green','Blue','Yellow','Purple',"White","Random"], PS16, current_text=CONFIG['trail_color'])
+# Trail Color, Dropdown
+TrailColor = pw.Dropdown(pge, Position((200, 485))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], ['Red','Green','Blue','Yellow','Purple',"White","Random"], PS16, current_text=CONFIG['trail_color'], tip=("Trail Color",PS14))
+# Floor Color, Dropdown
+FloorColorDropwdown = pw.Dropdown(pge, Position((20, 515))*RATIO, [pge.Colors.WHITE, (140,123,106), pge.Colors.BLACK], [str(k).capitalize() for k in GAME_FLOOR_COLOR_OPTIONS], PS16, current_text=CONFIG['floor_color'], tip=("Floor Color",PS14))
 
 class Options(Screen):
     id:int = 0x1
@@ -47,9 +50,10 @@ class Options(Screen):
         self.widgets.append(MeasureSpeedSelect)
         self.widgets.append(TrailCheck)
         self.widgets.append(TrailColor)
+        self.widgets.append(FloorColorDropwdown)
     def draw(self):
-        pge.draw_rect(Position((10,450))*RATIO,Position((300,80))*RATIO,COLOR_DARK_ALMOND,2,pge.Colors.GRAY,alpha=128)
-        pge.draw_text(Position((15,455))*RATIO,'Trail Options', PS16,pge.Colors.WHITE)
+        pge.draw_rect(Position((10,450))*RATIO,Position((300,120))*RATIO,COLOR_DARK_ALMOND,2,pge.Colors.GRAY,alpha=230)
+        pge.draw_text(Position((15,455))*RATIO,'Visual Options', PS16,pge.Colors.WHITE)
         if self.frames_runned == 0:
             self.frames_runned = 1
             self.cfg = CONFIG
@@ -65,6 +69,7 @@ class Options(Screen):
             MeasureSpeedSelect.value = self.cfg['speed_measure']
             TrailCheck.value = self.cfg['mouse_trail']
             TrailColor.current_text = self.cfg["trail_color"]
+            FloorColorDropwdown.current_text = self.cfg["floor_color"]
         if BackButtonOptions.value:
             self.SCH.changeScreen(0x0)
             self.exiting()
@@ -80,6 +85,7 @@ class Options(Screen):
         self.cfg['speed_measure'] = MeasureSpeedSelect.value
         self.cfg['mouse_trail'] = TrailCheck.value
         self.cfg['trail_color'] = TrailColor.current_text
+        self.cfg['floor_color'] = FloorColorDropwdown.current_text
             
         # Draw Main Title
         pge.draw_text(Position((20,20))*RATIO,"Options",RBG24, (125,90,115), alpha=80)
@@ -97,6 +103,8 @@ class Options(Screen):
         CONFIG['speed_measure'] = self.cfg['speed_measure']
         CONFIG['mouse_trail'] = self.cfg['mouse_trail']
         CONFIG['trail_color'] = self.cfg['trail_color']
+        CONFIG['floor_color'] = self.cfg['floor_color']
+        self.SCH.findScreen(0x4).exiting() # Resets the game :)
         self.cfg = CONFIG
         self.frames_runned = 0
         pge.setFPS(GAME_FPS_OPTIONS[CONFIG['fps']])
