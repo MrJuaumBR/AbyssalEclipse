@@ -104,7 +104,7 @@ class Weapon(pg.sprite.Sprite):
         The animation is done by increasing the frame index by half the average framerate divided by the target framerate.
         The animation frames are then switched by using the frame index as the index to the animation_frames list.
         """
-        # Increase the frame index by half the average framerate divided by the target framerate
+        # Framerate independant animation
         self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
         
         # Switch the animation frame by using the frame index as the index to the animation_frames list
@@ -245,9 +245,8 @@ class Player(pg.sprite.Sprite):
         """
         if pge.mouse.left and pge.delta_time.total_seconds()-self.last_reload_time > self.reload_time:
             # get the center of the screen
-            center_of_screen = pge.screen.get_rect().center
             # create a new bullet at the current position of the player
-            w = Weapon(self, center_of_screen=center_of_screen)
+            w = Weapon(self, center_of_screen=GAME_CENTER_OF_SCREEN)
             # add the bullet to the world
             self.world.add_projectile(w)
             # update the last reload time

@@ -106,7 +106,10 @@ class World(pg.sprite.Group):
             proj:pg.sprite.Sprite
             proj.draw(self)
             if CONFIG['debug']:
-                pg.draw.line(self.surface, pge.Colors.RED.rgb, end_pos=proj.start_pos-self.offset, start_pos=proj.rect.center-self.offset, width=int(2*RATIO.med))
+                # Connect Player and Projectile with a line
+                player_center = GAME_CENTER_OF_SCREEN + self.offset
+                pg.draw.line(self.surface, pge.Colors.WHITE.rgb, player_center, proj.rect.center, int(2*RATIO.med))
+                
             
     def add_projectile(self, projectile:pg.sprite.Sprite):
         self.projectiles.append(projectile)
@@ -131,14 +134,6 @@ class World(pg.sprite.Group):
         # Draw the floor tiles based on the current offset
         self.draw_floor(offset.x, offset.y)
         
-        # Iterate through all sprites and draw them onto the screen
-        for sprite in self.sprites():
-            if sprite.type != 'player' and sprite.type != 'bullet':  # Skip drawing the player sprite here
-                sprite_rect = sprite.rect
-                # Adjust the sprite position by the offset
-                sprite_rect.topleft += offset
-                # Blit the sprite onto the screen at the adjusted position
-                self.surface.blit(sprite.surface, sprite_rect)
                 
         self.draw_projectiles()
         

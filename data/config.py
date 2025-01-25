@@ -26,6 +26,7 @@ GAME_PATH_ASSETS = os.path.join(GAME_PATH_DATA,'assets')
 GAME_PATH_LICENSES = os.path.join(GAME_PATH_ASSETS,'licenses')
 GAME_PATH_FONTS = os.path.join(GAME_PATH_ASSETS,'fonts')
 GAME_PATH_TEXTURES = os.path.join(GAME_PATH_ASSETS,'textures')
+GAME_PATH_SOUNDS = os.path.join(GAME_PATH_ASSETS,'sounds')
 
 # Fonts Paths
     # Rubik Italic, Rubik, Rubik Glitch
@@ -102,6 +103,7 @@ class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     mouse_trail:bool
     trail_color:int
     floor_color:int
+    volume:float
 
 GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "fullscreen":True,
@@ -115,7 +117,8 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "mouse_trail":True,
     "trail_color":1,
     'speed_measure':0,
-    'floor_color':0
+    'floor_color':0,
+    'volume':0.8
 }
 
 class GAME_WEAPON_ATTRIBUTTES_TYPE(typing.TypedDict):
@@ -179,6 +182,7 @@ pge.setScreenTitle(GAME['name'])
 pge.setScreenIcon(pge.loadImage(f"{GAME_PATH_TEXTURES}/icon.png"))
 
 GAME_MENU_BACKGROUND = pg.transform.scale(pge.loadImage(f"{GAME_PATH_TEXTURES}/menubg.png"), GD.screen)
+GAME_MENU_BACKGROUND.set_alpha(80)
 
     
 # Fast Fix for new Config
@@ -206,6 +210,12 @@ class RatioType():
         
 RATIO = RatioType(SRATIO)
 
+GAME_CENTER_OF_SCREEN:tuple[int,int] = GAME_SCREEN.get_rect().center
+
+# Music
+Music = pg.mixer.music
+Music.load(f"{GAME_PATH_SOUNDS}/music.mp3")
+
 # Colors
 
 COLOR_LIGHT_GREEN = reqColor(100,190,100)
@@ -219,10 +229,23 @@ COLOR_DARK_YELLOW = reqColor(150,150,50)
 COLOR_WHITE = reqColor(255,255,255)
 COLOR_DARK_ALMOND = reqColor(180, 163, 146)
 
+COLOR_DARK_BACKGROUND = reqColor(25,25,25)
+COLOR_LIGHT_BACKGROUND = reqColor(150,150,150)
+COLOR_DARK_BORDER = reqColor(75,75,75)
+COLOR_LIGHT_BORDER = reqColor(200,200,200)
+COLOR_LIGHT_REJECT = reqColor(255,170,190)
+COLOR_LIGHT_ACCEPT = reqColor(190,255,170)
+
+COLOR_DARK_UNACTIVE = reqColor(50,50,50)
+COLOR_DARK_ACTIVE = reqColor(75,120,80)
+
 COLOR_DISCORD_BLUE = reqColor(88,101,242)
 
 
 
+pge.cfgtips.background_color = COLOR_LIGHT_BACKGROUND
+pge.cfgtips.border_color = COLOR_DARK_BORDER
+pge.cfgtips.text_color = pge.Colors.BLACK
 pge.setFPS(GAME_FPS_OPTIONS[CONFIG['fps']])
 pge.enableFPS_unstable(CONFIG['dynamic_fps'])
 pge.mouse.mouse_trail_enabled = CONFIG['mouse_trail']
@@ -441,7 +464,7 @@ DEBUG_WIDGETS:list[pw.Widget,] = [
     DEBUG_ClearScoreButton
 ]
 
-from data import mainmenu, options, leaderboard, licenses, game
+from data import mainmenu, options, leaderboard, licenses, game, credits
 class ScreenHandler(object):    
     SCREENS_RELATIONS:list[Screen,] = []
     _current_screen:int = None
@@ -456,6 +479,7 @@ class ScreenHandler(object):
         self.SCREENS_RELATIONS.append(leaderboard.Leaderboard(self))
         self.SCREENS_RELATIONS.append(licenses.Licenses(self))
         self.SCREENS_RELATIONS.append(game.Game(self))
+        self.SCREENS_RELATIONS.append(credits.Credits(self))
         
         self.current_screen = 0x0
         self.disableAutoUpdate()
@@ -520,24 +544,26 @@ class ScreenHandler(object):
             if not self.screen.disable_widget: pge.draw_widgets(self.screen.widgets)
             
         if CONFIG['show_fps']:
+            Critical:bool = False
+            FPS = int(pge.getAvgFPS())
             Limit = GAME_FPS_OPTIONS[CONFIG['fps']]
-            if pge._rfps > Limit * 0.8:
+            if FPS >= Limit * 0.8:
                 Color = pge.Colors.LIGHTGREEN
-            elif pge._rfps > Limit * 0.6:
+            elif FPS >= Limit * 0.6:
                 Color = pge.Colors.LIGHTYELLOW
-            elif pge._rfps > Limit * 0.4:
+            elif FPS >= Limit * 0.4:
+                Critical = True
                 Color = pge.Colors.YELLOW
-            elif pge._rfps > Limit * 0.2:
+            elif FPS >= Limit * 0.2:
+                Critical = True
                 Color = pge.Colors.ORANGE
             else:
+                Critical = True
                 Color = pge.Colors.RED
-            pge.draw_text(Position((750,10))*RATIO,f"FPS: {int(pge._rfps)}",PS14, Color)
+            pge.draw_text(Position((730,10))*RATIO,f"FPS: {'(!) ' if Critical else ''}{FPS}",PS14, Color)
         if CONFIG['debug']:
             # Text
             Text = f"Screen(Id, Old): {self.current_screen, GD._old_cs}"
-            
-            # Contrast Text Color
-            Color = pge.Colors.WHITE
             
             pge.draw_text(Position((2,2))*RATIO,Text,PS14,Color)
             if self.wait_debug_menu_open > 0: self.wait_debug_menu_open -= 1
@@ -546,7 +572,7 @@ class ScreenHandler(object):
                 self.wait_debug_menu_open = pge.TimeSys.s2f(0.3)
                 
             if self.debug_menu:
-                pge.draw_rect(Position((5,5))*RATIO, Position((395,595))*RATIO, COLOR_DARK_ALMOND, 2, pge.Colors.BLOODRED, alpha=230)
+                pge.draw_rect(Position((5,5))*RATIO, Position((395,595))*RATIO, COLOR_DARK_BACKGROUND, 2, COLOR_LIGHT_BORDER, alpha=230)
                 pge.draw_widgets(DEBUG_WIDGETS)
                 
                 if DEBUG_CreateScoreButton.value:

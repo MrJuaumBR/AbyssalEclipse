@@ -1,6 +1,6 @@
 from .config import *
 # +++ LICENSES +++ #
-BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_DARK_RED,COLOR_DARK_ALMOND])
+BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND,COLOR_LIGHT_BORDER])
 
 class Licenses(Screen):
     id:int = 0x3
@@ -15,7 +15,7 @@ class Licenses(Screen):
         
         # LicenseText = pw.Textarea(pge, (5*RATIO, 80*RATIO), [pge.Colors.ANTIFLASH, pge.Colors.ANTIFLASH, pge.Colors.BLACK], PS14, self.license_text)
         # LicenseText.editable = False
-        LicenseText = pw.Longtext(pge, Position((5, 80))*RATIO, PS12, self.license_text, [pge.Colors.BLACK, pge.Colors.ANTIFLASH, pge.Colors.BLOOD])
+        LicenseText = pw.Longtext(pge, Position((5, 80))*RATIO, PS12, self.license_text, [pge.Colors.ANTIFLASH, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
         
         self.widgets.append(LicenseText)
         

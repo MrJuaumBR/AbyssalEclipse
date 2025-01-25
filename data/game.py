@@ -53,7 +53,8 @@ class Game(Screen):
         if ResumeButton.value and self.pause_timer <= 0:
             self.paused = False
             self.pause_timer = pge.TimeSys.s2f(0.32)
-        elif ExitToMenuButton.value and self.pause_timer <= 0:
+        elif ExitToMenuButton.value: #and self.pause_timer <= 0:
+            print("Exit to Menu")
             self.exiting()
             self.SCH.changeScreen(0x0)
         elif ExitGame.value and self.pause_timer <= 0:
