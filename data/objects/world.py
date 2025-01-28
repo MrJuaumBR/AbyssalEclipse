@@ -45,7 +45,9 @@ def LoadFloor() -> tuple[pg.SurfaceType, int, int]:
 
 
 
-from .player import Player
+from .player import Player, Projectile
+from .enemy import _Enemy,NightmareImp, BloodyEye
+from .items import Item,ExpCrystal,Coin
 
 class World(pg.sprite.Group):
     surface:pg.SurfaceType = None
@@ -54,7 +56,20 @@ class World(pg.sprite.Group):
 
     player:Player = None
     
-    projectiles:list[pg.sprite.Sprite,] = []
+    start_time:float = 0
+    elapsed_time:float = 0
+    
+    enemy_to_be_spawned:int = 7
+    enemy_multiplier:int = 1.3 # + 30%
+    
+    enemys:list[_Enemy,] = []
+    projectiles:list[Projectile,] = []
+    items:list[Item,] = []
+    
+    
+    debug_proj_color:tuple[int,int,int] = (0,255,0)
+    debug_enemy_color:tuple[int,int,int] = (255,0,0)
+    debug_item_color:tuple[int,int,int] = (0,0,255)
     def __init__(self):
         """
         Initialize the World object.
@@ -81,7 +96,34 @@ class World(pg.sprite.Group):
         # Initialize the player within the world
         self.player = Player(self)
         
+        # Set the start time of the world
+        self.start_time = pge.delta_time.total_seconds()
+        
+        self.particles = []
+        
+        for i in range(self.enemy_to_be_spawned):
+            self.spawn_enemy()
 
+
+    
+    def clear_killed_sprites(self):
+        s = self.sprites()
+        for enemy in self.enemys:
+            if not (enemy in s):
+                self.enemys.remove(enemy)
+
+        for projectile in self.projectiles:
+            if not (projectile in s):
+                self.projectiles.remove(projectile)
+            
+    
+    def spawn_enemy(self):
+        EnemyX:int = random.randint(GAME_ENEMY_SPAWN_RANGE[0], GAME_ENEMY_SPAWN_RANGE[1]) * random.choice([-1,1])
+        EnemyY:int = random.randint(GAME_ENEMY_SPAWN_RANGE[0], GAME_ENEMY_SPAWN_RANGE[1]) * random.choice([-1,1])
+        EnemyX += GAME_CENTER_OF_SCREEN[0]
+        EnemyY += GAME_CENTER_OF_SCREEN[1]
+        Enemy:_Enemy = random.choice([NightmareImp, BloodyEye])
+        self.enemys.append(Enemy((EnemyX, EnemyY),1,self))
         
     def draw_floor(self, offset_x, offset_y):
         """
@@ -103,19 +145,41 @@ class World(pg.sprite.Group):
     
     def draw_projectiles(self):
         for proj in self.projectiles:
-            proj:pg.sprite.Sprite
+            proj:Projectile
             proj.draw(self)
             if CONFIG['debug']:
                 # Connect Player and Projectile with a line
-                player_center = GAME_CENTER_OF_SCREEN + self.offset
-                pg.draw.line(self.surface, pge.Colors.WHITE.rgb, player_center, proj.rect.center, int(2*RATIO.med))
+                pg.draw.line(self.surface, self.debug_proj_color, GAME_CENTER_OF_SCREEN, proj.rect.center-self.offset, int(2*RATIO.med))
                 
+    def draw_enemys(self):
+        for enemy in self.enemys:
+            enemy.draw()
+            if CONFIG['debug']:
+                # Connect Player and Enemy with a line
+                pg.draw.line(self.surface, self.debug_enemy_color, GAME_CENTER_OF_SCREEN, enemy.rect.center-self.offset, int(2*RATIO.med))
+    
+    def draw_items(self):
+        for item in self.items:
+            item.draw()
             
+    
     def add_projectile(self, projectile:pg.sprite.Sprite):
         self.projectiles.append(projectile)
         self.add(projectile)
-        
+    
+    def add_item(self, position:pg.math.Vector2,itemName:Literal['ExpShard','Coin']='ExpShard'):
+        if itemName == 'ExpShard':
+            x = ExpCrystal(position,self)
+            self.items.append(x)
+            self.add(x)
+        elif itemName == 'Coin':
+            x = Coin(position,self)
+            self.items.append(x)
+            self.add(x)
+    
     def update(self):
+        self.clear_killed_sprites()
+        self.elapsed_time = pge.delta_time.total_seconds() - self.start_time
         for sprite in self.sprites():
             sprite.update()
             
@@ -134,7 +198,14 @@ class World(pg.sprite.Group):
         # Draw the floor tiles based on the current offset
         self.draw_floor(offset.x, offset.y)
         
-                
+        # Draw Player Rect in self.surface using offset
+        if CONFIG['debug']:
+            r = pg.Rect(0,0,*Position((64,64))*RATIO)
+            r.center = GAME_CENTER_OF_SCREEN
+            pg.draw.rect(self.surface, pge.Colors.RED.rgb,r, int(3*RATIO.med))
+        
+        self.draw_enemys()     
+        self.draw_items()   
         self.draw_projectiles()
         
         # Get the rectangle of the screen and the world surface

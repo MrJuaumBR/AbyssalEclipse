@@ -18,8 +18,8 @@ Weapon_Frames_Positions = [
     (128,0)
 ]
 
-class Weapon(pg.sprite.Sprite):
-    type:str = 'weapon'
+class Projectile(pg.sprite.Sprite):
+    type:str = 'projectile'
     
     player:object
     surface:pg.SurfaceType
@@ -31,13 +31,15 @@ class Weapon(pg.sprite.Sprite):
     rect:pg.Rect = pg.Rect(0,0,*(Position((16,16))*RATIO))
     start_time:datetime.timedelta = None
     lifetime:float = 10.0
-    speed:float = 5.0
+    speed:float = 6.5
     hits:int = 1
     
     direction:pg.math.Vector2 = pg.math.Vector2(0,0)
     
     animation_frames:list[pg.SurfaceType,] = []
     frame:float = 0.0
+    
+    rep_color = (255,0,0)
     def __init__(self, player:object, attributes:GAME_WEAPON_ATTRIBUTTES_TYPE=GAME_DEFAULT_WEAPON_ATTRIBUTTES, center_of_screen:tuple[int,int]=(0,0)):
         """
         Creates a new weapon at the given position, with the given attributes and player.
@@ -57,14 +59,18 @@ class Weapon(pg.sprite.Sprite):
         
         # Set the start position of the weapon
         self.start_pos = self.position
+        
         # Set the position of the mouse
         self.mouse_pos = pg.math.Vector2(pge.mouse.pos)
-        # Set the time when the weapon was created
-        self.start_time:datetime.timedelta = pge.delta_time.total_seconds()
-        
         
         # Setup the weapon with the given attributes
         self.setup(attributes)
+        
+        self.position += self.player.world.offset
+        
+        # Set the time when the weapon was created
+        self.start_time:datetime.timedelta = pge.delta_time.total_seconds()
+        
         
     def setup(self, attributes:GAME_WEAPON_ATTRIBUTTES_TYPE):
         """
@@ -77,6 +83,7 @@ class Weapon(pg.sprite.Sprite):
         Args:
             attributes (GAME_WEAPON_ATTRIBUTTES_TYPE): The attributes of the weapon.
         """
+        self.rep_color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
         # Set the direction of the weapon to the direction of the mouse from the start position of the weapon
         self.direction = self.mouse_pos - self.start_pos
         
@@ -105,7 +112,8 @@ class Weapon(pg.sprite.Sprite):
         The animation frames are then switched by using the frame index as the index to the animation_frames list.
         """
         # Framerate independant animation
-        self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
+        # self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
+        self.frame = (self.frame + (self.speed * 0.1) * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
         
         # Switch the animation frame by using the frame index as the index to the animation_frames list
         self.surface = self.animation_frames[int(self.frame)]
@@ -115,8 +123,28 @@ class Weapon(pg.sprite.Sprite):
         Draws the weapon on the screen.
         
         """
-        offset:pg.math.Vector2 = world.offset
-        world.surface.blit(self.surface, self.position - offset)
+        # offset:pg.math.Vector2 = world.offset
+        r = pg.rect.Rect(0,0, *Position((32,32))*RATIO)
+        r.center = self.position.xy - world.offset
+        world.surface.blit(self.surface, r)
+        if CONFIG['debug']:
+            pg.draw.rect(world.surface, self.rep_color, r, 1)
+    
+    def detect_collision(self):
+        enemys:list[pg.sprite.Sprite,] = self.player.world.enemys
+        
+        my_rect:pg.rect.RectType = pg.Rect(*(self.position.copy() + self.player.world.offset),32,32)
+        for enemy in enemys:
+            e_rect:pg.rect.RectType = pg.Rect(*(enemy.position + self.player.world.offset),32,32)
+            if my_rect.colliderect(e_rect): # Is colliding with this enemy?
+                if self.hits > 0: # This projectile has hits left?
+                    self.hits -= 1 # Remove a hit
+                    if enemy.health > 0: # Is the enemy alive?
+                        enemy.take_damage(self.damage)
+                    
+        if self.hits <= 0: # This projectile has no hits left?
+            self.kill()
+        
     
     def update(self):
         """
@@ -140,6 +168,8 @@ class Weapon(pg.sprite.Sprite):
         
         # Update the center of the rect to the new position of the weapon
         self.rect.center = self.position.xy
+        
+        self.detect_collision()
 
 class Player(pg.sprite.Sprite):
     type:str = 'player'
@@ -154,8 +184,9 @@ class Player(pg.sprite.Sprite):
     reload_time:float = 1.0
     last_reload_time:datetime.timedelta = pge.delta_time.total_seconds()
     
-    speed:float = 1.5
-    max_speed:float = 0.0
+    money:int = 0
+    
+    speed:float = 5.0
     
     movement_vector:pg.math.Vector2 = pg.math.Vector2(0,0)
     
@@ -173,8 +204,13 @@ class Player(pg.sprite.Sprite):
         'bottom':[],
         'idle':[]
     }
+    
+    sprite_size:int = 64
+    
     current_state:Literal['top','left','right','bottom','idle'] = 'idle'
     current_frame:int = 0
+    
+    position:pg.Vector2 = pg.Vector2(0,0)
     def __init__(self, world:pg.sprite.Group):
         """
         Creates a player sprite.
@@ -184,10 +220,8 @@ class Player(pg.sprite.Sprite):
         """
         super().__init__(world)
         self.world = world
-        self.surface = pge.createSurface(*Position((64,64))*RATIO)
+        self.surface = pge.createSurface(*Position((self.sprite_size,self.sprite_size))*RATIO)
         self.surface.fill((100,100,255))
-        
-        self.max_speed = self.speed*100 # the maximum speed in px/s
         
         self.last_reload_time = pge.delta_time.total_seconds() # the time when the player last reloaded
         
@@ -224,7 +258,7 @@ class Player(pg.sprite.Sprite):
                 # get the frame from the spritesheet
                 s = ss.image_at(Rect(frame[0],frame[1],32,32),255)
                 # resize the frame to fit the size of the player
-                s = pg.transform.scale(s, Position((64,64))*RATIO)
+                s = pg.transform.scale(s, Position((self.sprite_size,self.sprite_size))*RATIO)
                 # flip the frame horizontally if the animation is for the right direction
                 if key == 'right':
                     s = pg.transform.flip(s, True, False)
@@ -245,10 +279,8 @@ class Player(pg.sprite.Sprite):
         """
         if pge.mouse.left and pge.delta_time.total_seconds()-self.last_reload_time > self.reload_time:
             # get the center of the screen
-            # create a new bullet at the current position of the player
-            w = Weapon(self, center_of_screen=GAME_CENTER_OF_SCREEN)
             # add the bullet to the world
-            self.world.add_projectile(w)
+            self.world.add_projectile(Projectile(self, center_of_screen=GAME_CENTER_OF_SCREEN))
             # update the last reload time
             self.last_reload_time = pge.delta_time.total_seconds()
         
@@ -298,37 +330,30 @@ class Player(pg.sprite.Sprite):
             # Reload Time is stored in reload_time
             
         # Normalize vectors
-        magnitude = math.sqrt(self.movement_vector.x**2 + self.movement_vector.y**2)
+        self.magnitude = math.sqrt(self.movement_vector.x**2 + self.movement_vector.y**2)
             
-        if magnitude > 0: # Prevent division by zero    
-            
-            # Detect if the speed is going to pass the speed limit
-            # Simulate the movement vector with the speed
-            _mov_vector = self.movement_vector
-            _mov_vector /= magnitude
-            _mov_vector *= self.speed
-            _speed = self.get_speed('px/s', mov_vector=_mov_vector) # Gets the current speed
-            
-            if _speed > self.max_speed: # Speed Limit Reached
-                # Rescale Magnitude to not pass the speed limit
-                magnitude = (_speed / self.max_speed) * self.speed # (Actual Speed / Max Speed) * Speed
-                
+        if self.magnitude > 0: # Prevent division by zero    
             # Normalize the vector
-            self.movement_vector.x /= magnitude
-            self.movement_vector.y /= magnitude
+            self.movement_vector.x /= self.magnitude
+            self.movement_vector.y /= self.magnitude
             
-        # Now you can scale the normalized vector by the desired speed
-        self.movement_vector.x *= self.speed
-        self.movement_vector.y *= self.speed
+            # Now you can scale the normalized vector by the desired speed
+            # Movement Vector gonna be on center, but i need on topleft
+            self.movement_vector.x *= self.speed
+            self.movement_vector.y *= self.speed
+            
+        r = pg.Rect(0,0,*(Position((self.sprite_size,self.sprite_size))*RATIO))
+        r.topleft = self.movement_vector + self.world.offset
         
         # Update world offset
-        self.world.offset += self.movement_vector
+        self.world.offset.xy = r.topleft
         
         # Update Speed Measures
         self.register_speed['px/s'] = self.get_speed('px/s')
         self.register_speed['m/s'] = self.get_speed('m/s')
         self.register_speed['km/h'] = self.get_speed('km/h')
         self.register_speed['mph'] = self.get_speed('mph')
+        
     
     def animation_update(self):
         """
@@ -349,8 +374,9 @@ class Player(pg.sprite.Sprite):
         )
         
         # Update Current Frame
-        # Animation Needs to be framerate independent
-        self.current_frame = (self.current_frame + 0.2 * (pge.getAvgFPS()/pge.fps)) % len(self.animations[self.current_state])
+        # Animation Needs to be framerate independent also consideer player speed from register_speed['px/s']
+        self.current_frame = (self.current_frame + (min(0.1,self.magnitude*0.2) if self.current_state != 'idle' else 0.07) * (pge.getAvgFPS()/pge.fps)) % len(self.animations[self.current_state])
+        
         
         self.surface = self.animations[self.current_state][int(self.current_frame)]
     
@@ -401,7 +427,10 @@ class Player(pg.sprite.Sprite):
         """
         self.input()
         self.animation_update()
+        # Reset the movement vector
         self.reset_vector()
+        
+        self.position = GAME_CENTER_OF_SCREEN+self.world.offset
         
     def draw(self):
         """
