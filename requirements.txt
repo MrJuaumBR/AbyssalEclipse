@@ -1,0 +1,5 @@
+pygame
+--extra-index-url https://test.pypi.org/simple/
+JPyDB
+--extra-index-url https://test.pypi.org/simple/
+maxpygame

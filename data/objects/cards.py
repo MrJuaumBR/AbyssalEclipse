@@ -53,6 +53,7 @@ class Card:
     icon:pg.SurfaceType
     
     surface:pg.SurfaceType
+    surface_rect:pg.rect.RectType
     
     rect:pg.Rect
     
@@ -69,7 +70,8 @@ class Card:
         
         self.widgets = []
         
-        self.surface = pg.Surface((180,260),pg.SRCALPHA)
+        self.surface = pg.Surface(Position((180,260))*RATIO,pg.SRCALPHA)
+        self.surface_rect = self.surface.get_rect()
         
         if icon_rect is not None:
             self.icon = Icons_spritesheet.image_at(pg.Rect(*icon_rect),-1)
@@ -87,14 +89,14 @@ class Card:
         self.tip = pw.Tip(pge, f'Name: {str(self.cardname).capitalize()}\nRarity: {str(self.rarity).capitalize()}', PS14)
         
         # Draw Title
-        pge.draw_text(Position((5,5))*RATIO, str(self.cardname).capitalize(), PS18, Rarirty[self.rarity]['color'], surface=self.surface)
+        pge.draw_text(Position((self.surface_rect.centerx,5))*RATIO, str(self.cardname).capitalize(), PS18, Rarirty[self.rarity]['color'], surface=self.surface, root_point='center')
         
         # Draw Icon
         if self.icon is not None:
             self.surface.blit(self.icon, Position((66,20))*RATIO)
             
         # Draw Description
-        pge.draw_rect(Position((2,70))*RATIO, Position((self.surface.get_size()[0]-4, self.surface.get_size()[1]-72))*RATIO, pge.Colors.BROWN, surface=self.surface)
+        pge.draw_rect(Position((2,70))*RATIO, Position((self.surface.get_size()[0]-4, self.surface.get_size()[1]-72))*RATIO, pge.Colors.BROWN, surface=self.surface, root_point='topleft')
         
         lines = self.get_lines(self.description)
         y = 71

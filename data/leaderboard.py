@@ -4,7 +4,8 @@ from .config import *
 BackButtonLeaderboard = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND,COLOR_LIGHT_BORDER])
 OrderDropdown = pw.Dropdown(pge, Position((80,55))*RATIO, [pge.Colors.WHITE, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER], ['By Score','By Date','By Username'], PS16, current_text=1, tip=("Order By",PS14))
 StartNewRunButton = pw.Button(pge, Position((15,550))*RATIO, PS16, "START NEW RUN",[COLOR_LIGHT_ACCEPT, COLOR_DARK_BACKGROUND])
-UsernameTextbox = pw.Textbox(pge, Position((145,550))*RATIO, 25*RATIO.y, colors=[COLOR_DARK_UNACTIVE,COLOR_DARK_ACTIVE, pge.Colors.WHITE, COLOR_LIGHT_BORDER], font=PS16, text=f"{GD.username}", tip=("Username that will save score",PS14), placeholder="Enter your username...")
+UsernameTextbox = pw.Textbox(pge, Position((220,550))*RATIO, 25*RATIO.y, colors=[COLOR_DARK_UNACTIVE,COLOR_DARK_ACTIVE, pge.Colors.WHITE, COLOR_LIGHT_BORDER], font=PS16, text=f"{GD.username}", tip=("Username that will save score",PS14), placeholder="Enter your username...")
+DifficultyDropdown = pw.Dropdown(pge, Position((145,550))*RATIO, [pge.Colors.WHITE, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER], ['Easy','Medium','Hard'], PS16, current_text=0, tip=("Difficulty",PS14))
 
 class Leaderboard(Screen):
     id:int = 0x2
@@ -18,6 +19,7 @@ class Leaderboard(Screen):
         self.widgets.append(OrderDropdown)
         self.widgets.append(StartNewRunButton)
         self.widgets.append(UsernameTextbox)
+        self.widgets.append(DifficultyDropdown)
         
         self.order()
         

@@ -48,6 +48,7 @@ def LoadFloor() -> tuple[pg.SurfaceType, int, int]:
 from .player import Player, Projectile
 from .enemy import _Enemy,NightmareImp, BloodyEye
 from .items import Item,ExpCrystal,Coin
+from .cards import Card
 
 class World(pg.sprite.Group):
     surface:pg.SurfaceType = None

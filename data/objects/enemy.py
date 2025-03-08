@@ -22,7 +22,7 @@ class _Enemy(pg.sprite.Sprite):
     
     moving_right:bool = False
     animation = []
-    frame = 0
+    _frame = 0
     def __init__(self, position:list[int,int],level:int=1,*groups):
         super().__init__(*groups)
         self.blinking = False
@@ -44,6 +44,18 @@ class _Enemy(pg.sprite.Sprite):
             self.world:object = self.groups()[0]
             
         self.setup_animation()
+    
+    @property
+    def frame(self):
+        return self._frame
+    
+    @frame.setter
+    def frame(self, value):
+        self._frame = value
+        if self._frame >= len(self.animation):
+            self._frame = len(self.animation) - 1
+        elif self._frame < 0:
+            self._frame = 0
     
     def setup_animation(self):
         pass
@@ -137,7 +149,7 @@ class BloodyEye(_Enemy):
                     self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
             
     def animate(self):
-        self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation)
+        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
         if self.moving_right:
             self.surface = pg.transform.flip(self.surface, True, False)
@@ -170,7 +182,7 @@ class NightmareImp(_Enemy):
                     self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
     
     def animate(self):
-        self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation)
+        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
         if self.moving_right:
             self.surface = pg.transform.flip(self.surface, True, False)
