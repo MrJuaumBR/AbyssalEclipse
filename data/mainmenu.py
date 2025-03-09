@@ -18,6 +18,7 @@ class Main_Menu(Screen):
     id:int = 0x0
     widgets:list[pw.Widget,] = []
     
+    title_animation:list[float, int] = [0.0, 1]
     def __init__(self,SCH):
         super().__init__(SCH)
         self.widgets = [
@@ -32,6 +33,9 @@ class Main_Menu(Screen):
     
     
     def _update(self):
+        self.title_animation[0] += (0.7 * (60/pge.getAvgFPS()))*self.title_animation[1]
+        if self.title_animation[0] >= 20 or self.title_animation[0] <= 0:
+            self.title_animation[1] *= -1
         return super()._update()
     
     def draw(self):
@@ -48,6 +52,6 @@ class Main_Menu(Screen):
             self.SCH.changeScreen(0x5)
         
         # Draw Main Title
-        pge.draw_text(Position((20,20))*RATIO,"Abyssal Eclipse",RBG50, (125,90,115), alpha=80)
-        pge.draw_text(Position((10,10))*RATIO,"Abyssal Eclipse",RBG52, (255,255,255))
-        pge.draw_text(Position((360,75))*RATIO,GAME['version'],PS20,pge.Colors.LIGHTGRAY)
+        pge.draw_text(Position((20+(self.title_animation[0]*0.8),20+(self.title_animation[0]*1.2)))*RATIO,"Abyssal Eclipse",RBG50, (125,90,115), alpha=80)
+        pge.draw_text(Position((10,10+self.title_animation[0]))*RATIO,"Abyssal Eclipse",RBG52, (255,255,255))
+        pge.draw_text(Position((360,75+self.title_animation[0]))*RATIO,GAME['version'],PS20,pge.Colors.LIGHTGRAY)

@@ -56,11 +56,17 @@ class Card:
     surface_rect:pg.rect.RectType
     
     rect:pg.Rect
-    
+    size:tuple[int,int] = (170,260)
     selected:bool = False
+    
+    
     
     tip:pw.Tip
     hover:bool = False
+    
+    CPS14 = pge.createFont(FONT_PIXELIFYSANS, 15)
+    CPS18 = pge.createFont(FONT_PIXELIFYSANS, 17)
+    CPS22 = pge.createFont(FONT_PIXELIFYSANS, 20)
     
     widgets = []
     def __init__(self, cardname, description, rarity, icon_rect:tuple[int,int,int,int]=None):
@@ -70,12 +76,12 @@ class Card:
         
         self.widgets = []
         
-        self.surface = pg.Surface(Position((180,260))*RATIO,pg.SRCALPHA)
+        self.surface = pg.Surface(self.size,pg.SRCALPHA)
         self.surface_rect = self.surface.get_rect()
         
         if icon_rect is not None:
             self.icon = Icons_spritesheet.image_at(pg.Rect(*icon_rect),-1)
-            self.icon = pg.transform.scale(self.icon, Position((48,48))*RATIO)
+            self.icon = pg.transform.scale(self.icon, (48,48))
         else:
             self.icon = None
         
@@ -89,19 +95,19 @@ class Card:
         self.tip = pw.Tip(pge, f'Name: {str(self.cardname).capitalize()}\nRarity: {str(self.rarity).capitalize()}', PS14)
         
         # Draw Title
-        pge.draw_text(Position((self.surface_rect.centerx,5))*RATIO, str(self.cardname).capitalize(), PS18, Rarirty[self.rarity]['color'], surface=self.surface, root_point='center')
+        pge.draw_text((self.surface_rect.centerx,11), str(self.cardname).capitalize(), self.CPS22, Rarirty[self.rarity]['color'], surface=self.surface, root_point='center')
+        
+        # Draw Description
+        pge.draw_rect((2,72), (self.surface.get_size()[0]-4, self.surface.get_size()[1]-74), pge.Colors.BROWN, surface=self.surface, root_point='topleft')
         
         # Draw Icon
         if self.icon is not None:
-            self.surface.blit(self.icon, Position((66,20))*RATIO)
-            
-        # Draw Description
-        pge.draw_rect(Position((2,70))*RATIO, Position((self.surface.get_size()[0]-4, self.surface.get_size()[1]-72))*RATIO, pge.Colors.BROWN, surface=self.surface, root_point='topleft')
+            self.surface.blit(self.icon, (66,22))
         
         lines = self.get_lines(self.description)
         y = 71
         for line in lines.values():
-            pge.draw_text(Position((5,y))*RATIO, line, PS14, pge.Colors.WHITE, surface=self.surface)
+            pge.draw_text((5,y), line, self.CPS18, pge.Colors.WHITE, surface=self.surface)
             y += 15
     
     def on_hover(self):
@@ -127,7 +133,7 @@ class Card:
                 lines[line_number] = current_line.strip()
                 current_line = ''
                 line_number += 1
-            elif pg.font.Font.size(PS10, current_line + ' ' + word)[0] > (self.surface.get_size()[0]-50)*RATIO.y:
+            elif pg.font.Font.size(self.CPS14, current_line + ' ' + word)[0]+10 > (self.surface.get_size()[0]-50):
                 lines[line_number] = current_line.strip()
                 current_line = word
                 line_number += 1
@@ -141,7 +147,7 @@ class Card:
     def draw(self, pos:tuple, surface:pg.SurfaceType = None):
         if surface is None:
             surface = pge.screen
-        surface.blit(self.surface, pos)
+        surface.blit(pg.transform.scale(self.surface, Position((170,260))*RATIO), pos)
         self.rect.topleft = pos
         
         self.on_hover()

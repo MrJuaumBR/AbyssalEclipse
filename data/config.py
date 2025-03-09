@@ -89,6 +89,28 @@ GAME_FLOOR_COLOR_OPTIONS = [
     'purple',
     'orange'
 ]
+# Game Difficulty
+
+GAME_DIFFICULTY = {
+    'easy':{
+        'enemy_life':0.95,
+        'enemy_speed':0.95,
+        'start_enemy':7,
+        'increase_enemy':4,
+    },
+    'normal':{
+        'enemy_life':1,
+        'enemy_speed':1,
+        'start_enemy':9,
+        'increase_enemy':5,
+    },
+    'hard':{
+        'enemy_life':1.05,
+        'enemy_speed':1.05,
+        'start_enemy':11,
+        'increase_enemy':6,
+    },
+}
 
 class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     fullscreen:bool
@@ -170,6 +192,7 @@ class _GameData:
     screen = GAME_WINDOW_RESOLUTION_OPTIONS[CONFIG['window_resolution']]
     fps = GAME_FPS_OPTIONS[CONFIG['fps']]
     username:str = f'User{random.randint(10000,99999)}'
+    difficulty:str = 'normal'
 
 
 
@@ -474,6 +497,15 @@ DEBUG_WIDGETS:list[pw.Widget,] = [
 ]
 
 from data import mainmenu, options, leaderboard, licenses, game, credits
+
+SCREEN_IDS = {
+    0x0: mainmenu.Main_Menu,
+    0x1: options.Options,
+    0x2: leaderboard.Leaderboard,
+    0x3: licenses.Licenses,
+    0x4: game.Game,
+    0x5: credits.Credits
+}
 class ScreenHandler(object):    
     SCREENS_RELATIONS:list[Screen,] = []
     _current_screen:int = None
@@ -481,6 +513,7 @@ class ScreenHandler(object):
     debug_menu:bool = False
     
     wait_debug_menu_open:int = 0
+    reset_when_change_screen:list[int,] = [0x4,]
     def __init__(self) -> None:
         
         self.SCREENS_RELATIONS.append(mainmenu.Main_Menu(self))
@@ -528,6 +561,11 @@ class ScreenHandler(object):
         if screen is not None:
             if screen_id <= self.current_screen:
                 self.updateWidgets(screen) # Fix for glitch
+            if screen_id in self.reset_when_change_screen:
+                # Pop from self.SCREENS_RELATIONS
+                self.SCREENS_RELATIONS.pop(self.SCREENS_RELATIONS.index(screen))
+                # Reset
+                self.SCREENS_RELATIONS.append(SCREEN_IDS[screen_id](self))
             if screen_id in [0x0,]:
                 self.current_screen = screen_id
                 GD._old_cs = screen_id
@@ -607,3 +645,4 @@ class ScreenHandler(object):
             
         
 SCH = ScreenHandler()
+

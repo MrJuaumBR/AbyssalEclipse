@@ -11,6 +11,8 @@ class _Enemy(pg.sprite.Sprite):
     health:int = 40
     max_health:int = 40
     speed:float = 4.5
+    damage:float = 5.0
+    attack_delay:float = 1.2
     
     blinking:bool = False
     dying:bool = False
@@ -19,12 +21,18 @@ class _Enemy(pg.sprite.Sprite):
     fade_time:float = 0
     last_blink_time = pg.time.get_ticks()
     last_fade_time = pg.time.get_ticks()
+    last_attack:float = 0
     
     moving_right:bool = False
     animation = []
+    distance = [128,256]
     _frame = 0
+    
+    started:pygameengine.timedelta = None
+    time_until_move:float = 0
     def __init__(self, position:list[int,int],level:int=1,*groups):
         super().__init__(*groups)
+        self.started = pge.delta_time.total_seconds()
         self.blinking = False
         self.dying = False
         self.at_distance = False
@@ -36,7 +44,6 @@ class _Enemy(pg.sprite.Sprite):
         self.position = pg.math.Vector2(*position)
         
         self.surface = pg.Surface(Position((32,32))*RATIO)
-        self.surface.fill((190,190,50))
         
         self.rect = self.surface.get_rect()
         
@@ -85,6 +92,10 @@ class _Enemy(pg.sprite.Sprite):
             pg.draw.rect(self.world.surface, self.world.debug_enemy_color, r, 1)
             
     def blink_sequence(self):
+        """
+        On player attack, the enemy blinks
+        
+        """
         if self.blinking:
             current_time = pg.time.get_ticks()
             if current_time - self.blink_time < 350:  # milliseconds
@@ -105,14 +116,23 @@ class _Enemy(pg.sprite.Sprite):
                 self.world.add_item(self.position, random.choice(['ExpShard','Coin']))
                 self.kill()
                 self.dying = False
-            
+    
+    def collision(self):
+        if self.world.player.rect.colliderect(self.rect):
+            if pge.delta_time.total_seconds()-self.last_attack > self.attack_delay: #seconds-self.last_attack
+                self.world.player.take_damage(self.damage)
+                self.last_attack = pge.delta_time.total_seconds()
+    
     def update(self):
-        self.enemy_moveset()
+        if pge.delta_time.total_seconds()-self.started > self.time_until_move:
+            self.enemy_moveset()
+            self.collision()
         self.animate()
         self.blink_sequence()
         self.kill_sequence()
 
 class BloodyEye(_Enemy):
+    time_until_move:float = 1.2
     def setup_animation(self):
         spritesheet = pge.createSpritesheet(GAME_PATH_TEXTURES+'/enemys.png')
         frame_size = Position((48,48)) * RATIO
@@ -127,12 +147,12 @@ class BloodyEye(_Enemy):
         direction = (player.position - self.position)
         distance = direction.length()
 
-        if distance < 280 * RATIO.med:
+        if distance < self.distance[0] * RATIO.med:
             self.at_distance = False
             direction = direction.normalize() * -1  # move away from the player
             self.position += direction * self.speed
             self.moving_right = direction.x > 0
-        elif distance > 470 * RATIO.med:
+        elif distance > self.distance[1] * RATIO.med:
             self.at_distance = False
             direction = direction.normalize()  # move towards the player
             self.position += direction * self.speed
@@ -155,6 +175,7 @@ class BloodyEye(_Enemy):
             self.surface = pg.transform.flip(self.surface, True, False)
 
 class NightmareImp(_Enemy):
+    time_until_move:float = 1.75
     def setup_animation(self):
         s = pge.createSpritesheet(GAME_PATH_TEXTURES+'/enemys.png')
         self.animation = []

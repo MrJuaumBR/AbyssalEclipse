@@ -2,8 +2,8 @@ from .config import *
 
 from .objects.world import World, Card
 
-LifeBar = pw.Progressbar(pge, Position((5,555))*RATIO, Position((250,20))*RATIO, [pge.Colors.BLOODRED, pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Health", PS16, tip=("Health", PS14))
-ExpBar = pw.Progressbar(pge, Position((5,580))*RATIO, Position((790,15))*RATIO, [pge.Colors.BLUE,pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Experience", PS14 , tip=("Experience", PS12))
+LifeBar = pw.Progressbar(pge, Position((5,545))*RATIO, Position((250,20))*RATIO, [pge.Colors.BLOODRED, pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Health", PS16, tip=("Health", PS14))
+ExpBar = pw.Progressbar(pge, Position((5,570))*RATIO, Position((790,15))*RATIO, [pge.Colors.BLUE,pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Experience", PS14 , tip=("Experience", PS12))
 
 # Pause Menu Widgets
 
@@ -20,7 +20,8 @@ ExitGame.enable = False
 class Game(Screen):
     id:int = 0x4
     widgets:list[pw.Widget,] = []
-    
+    content_offset:pg.math.Vector2 = pg.math.Vector2(0,0)
+    increase_offset:pg.math.Vector2 = pg.math.Vector2(1,1)
     paused:int = 0x0
     
     world:World
@@ -36,7 +37,10 @@ class Game(Screen):
         self.widgets.append(ExitToMenuButton)
         self.widgets.append(ExitGame)
         
-        self.world:World = World()
+        self.world:World = World(GD.difficulty,self.level_up)
+    
+    def level_up(self):
+        self.paused:int = 0x2
     
     def _update(self):
         if ((pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4) or (pge.joystick.main and pge.joystick.main.getButtonByString("start"))) and self.pause_timer <= 0 and not self.paused == 0x2:
@@ -61,7 +65,9 @@ class Game(Screen):
                 self.exiting()
                 pge.exit()
         elif self.paused == 0x2: # Leveled Up
-            pass
+            self.content_offset.y += self.increase_offset.y * (0.025 * (60/pge.getAvgFPS()))
+            if self.content_offset.y >= 1 or self.content_offset.y <= 0:
+                self.increase_offset.y *= -1
             
         if self.pause_timer > 0: self.pause_timer -= 1
         
@@ -102,9 +108,12 @@ class Game(Screen):
             for element in pause_elements:
                 element.enable = True
         elif self.paused == 0x0:
+            pge.draw_text(Position((400,550))*RATIO,'Enemies Left: '+str(len(self.world.enemys)),PS16,pge.Colors.WHITE,surface=pge.screen,root_point='center')
             for element in pause_elements:
                 element.enable = False
+        elif self.paused == 0x2:
+            pge.draw_text(Position((400,50+(self.content_offset.y*5)))*RATIO, f"Level Up to {self.world.player.level}!", PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')
     
     def exiting(self):
-        self.world = World()
+        # self.world:World = World(GD.difficulty,self.level_up)
         self.__dict__ = Game(self.SCH).__dict__

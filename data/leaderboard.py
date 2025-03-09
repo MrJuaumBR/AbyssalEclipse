@@ -5,7 +5,7 @@ BackButtonLeaderboard = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)"
 OrderDropdown = pw.Dropdown(pge, Position((80,55))*RATIO, [pge.Colors.WHITE, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER], ['By Score','By Date','By Username'], PS16, current_text=1, tip=("Order By",PS14))
 StartNewRunButton = pw.Button(pge, Position((15,550))*RATIO, PS16, "START NEW RUN",[COLOR_LIGHT_ACCEPT, COLOR_DARK_BACKGROUND])
 UsernameTextbox = pw.Textbox(pge, Position((220,550))*RATIO, 25*RATIO.y, colors=[COLOR_DARK_UNACTIVE,COLOR_DARK_ACTIVE, pge.Colors.WHITE, COLOR_LIGHT_BORDER], font=PS16, text=f"{GD.username}", tip=("Username that will save score",PS14), placeholder="Enter your username...")
-DifficultyDropdown = pw.Dropdown(pge, Position((145,550))*RATIO, [pge.Colors.WHITE, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER], ['Easy','Medium','Hard'], PS16, current_text=0, tip=("Difficulty",PS14))
+DifficultyDropdown = pw.Dropdown(pge, Position((145,550))*RATIO, [pge.Colors.WHITE, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER], ['Easy','Normal','Hard'], PS16, current_text=1, tip=("Difficulty",PS14))
 
 class Leaderboard(Screen):
     id:int = 0x2
@@ -37,6 +37,7 @@ class Leaderboard(Screen):
             self.exiting()
         elif StartNewRunButton.value:
             GD.username = UsernameTextbox.text
+            GD.difficulty = str(DifficultyDropdown.text).lower()
             self.SCH.changeScreen(0x4)
 
         # Draw Main Title

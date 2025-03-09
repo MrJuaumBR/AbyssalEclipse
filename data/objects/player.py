@@ -112,8 +112,7 @@ class Projectile(pg.sprite.Sprite):
         The animation frames are then switched by using the frame index as the index to the animation_frames list.
         """
         # Framerate independant animation
-        # self.frame = (self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
-        self.frame = (self.frame + (self.speed * 0.1) * (pge.getAvgFPS()/pge.fps)) % len(self.animation_frames)
+        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation_frames)
         
         # Switch the animation frame by using the frame index as the index to the animation_frames list
         self.surface = self.animation_frames[int(self.frame)]
@@ -176,13 +175,17 @@ class Player(pg.sprite.Sprite):
     
     world:object
     surface:pg.SurfaceType
+    rect:pg.rect.RectType
     
     maxHealth:float=100.0
-    health:float=100.0
-    level:int = 1
-    experience:float = 0.0
+    _health:float=100.0
+    _level:int = 1
+    _experience:float = 0.0
+    resistance:float = 0.0
+    luck:float = 1.0
     reload_time:float = 1.0
     last_reload_time:datetime.timedelta = pge.delta_time.total_seconds()
+    last_damage_taken:float = 0
     
     money:int = 0
     
@@ -207,8 +210,38 @@ class Player(pg.sprite.Sprite):
     
     sprite_size:int = 64
     
-    current_state:Literal['top','left','right','bottom','idle'] = 'idle'
-    current_frame:int = 0
+    state:Literal['top','left','right','bottom','idle'] = 'idle'
+    _frame:int = 0
+    @property
+    def frame(self, value:int=None) -> int:
+        if value is not None:
+            self._frame = value
+        return self._frame
+    
+    @frame.setter
+    def frame(self, value:int):
+        self._frame = value
+        if self._frame >= len(self.animations[self.state]):
+            self._frame = len(self.animations[self.state]) - 1
+        elif self._frame < 0:
+            self._frame = 0
+    
+    @property
+    def health(self, value:float=None) -> float:
+        if value is not None:
+            self._health = value
+        return self._health
+    
+    @health.setter
+    def health(self, value:float):
+        h = self._health
+        self._health = value
+        if self._health < h:
+            self.last_damage_taken = pge.delta_time.total_seconds()
+        if self._health > self.maxHealth:
+            self._health = self.maxHealth
+        elif self._health < 0:
+            self._health = 0
     
     position:pg.Vector2 = pg.Vector2(0,0)
     def __init__(self, world:pg.sprite.Group):
@@ -226,6 +259,8 @@ class Player(pg.sprite.Sprite):
         self.last_reload_time = pge.delta_time.total_seconds() # the time when the player last reloaded
         
         self.setup_animations() # sets up the animations for the player
+        
+        self.rect = self.surface.get_rect()
         
     def setup_animations(self) -> None:
         """
@@ -284,7 +319,30 @@ class Player(pg.sprite.Sprite):
             # update the last reload time
             self.last_reload_time = pge.delta_time.total_seconds()
         
-        
+    @property
+    def experience(self, value:float=None) -> float:
+        if value is not None:
+            self._experience = value
+        return self._experience
+    
+    @experience.setter
+    def experience(self, value:float):
+        self._experience = value
+        if self._experience >= self._level * 100:
+            self._experience -= self._level * 100
+            self.level += 1
+            
+    @property
+    def level(self, value:int=None) -> int:
+        if value is not None:
+            self._level = value
+        return self._level
+    
+    @level.setter
+    def level(self, value:int):
+        if value > self._level:
+            self._level = value
+            self.world.level_up_function()
     
     def input(self):
         """
@@ -321,10 +379,14 @@ class Player(pg.sprite.Sprite):
             RIGHT = pge.hasKeyPressed(K_d) or pge.hasKeyPressed(K_RIGHT)
             self.shoot()
             
+            # if pge.hasKeyPressed(K_LCTRL) and UP: self.experience += 5
+            
             if UP: self.movement_vector.y -= self.speed
             elif DOWN: self.movement_vector.y += self.speed
             if LEFT: self.movement_vector.x -= self.speed
             elif RIGHT: self.movement_vector.x += self.speed
+            
+            
             
             # Reload TIme is time delta
             # Reload Time is stored in reload_time
@@ -365,7 +427,7 @@ class Player(pg.sprite.Sprite):
         # Detect Current State
         # Left, Right, Top, Bottom, Idle
         Vector_X, Vector_Y = self.movement_vector.xy
-        self.current_state = (
+        self.state = (
             'left' if Vector_X < 0 else
             'right' if Vector_X > 0 else
             'top' if Vector_Y < 0 else
@@ -375,10 +437,11 @@ class Player(pg.sprite.Sprite):
         
         # Update Current Frame
         # Animation Needs to be framerate independent also consideer player speed from register_speed['px/s']
-        self.current_frame = (self.current_frame + (min(0.1,self.magnitude*0.2) if self.current_state != 'idle' else 0.07) * (pge.getAvgFPS()/pge.fps)) % len(self.animations[self.current_state])
+        # self.frame = (self.frame + (min(0.1,self.magnitude*0.2) if self.state != 'idle' else 0.07) * (pge.getAvgFPS()/pge.fps)) % len(self.animations[self.state])
+        self.frame = (self.frame+((0.3 if self.state != 'idle' else 0.07)*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animations[self.state])
         
         
-        self.surface = self.animations[self.current_state][int(self.current_frame)]
+        self.surface = self.animations[self.state][int(self.frame)]
     
     def reset_vector(self) -> None:
         """
@@ -417,6 +480,17 @@ class Player(pg.sprite.Sprite):
         conversion_factors = {'px/s': 1, 'm/s': 0.01, 'km/h': 0.036, 'mph': 0.0223694}
         return actual_speed * conversion_factors.get(measure_type, 1)
     
+    def take_damage(self, amount:float):
+        self.health -= amount*(1-self.resistance)
+        
+    def heal(self, amount:float):
+        self.health += amount
+    def life_manager(self):
+        if self.health < self.maxHealth:
+            if pge.delta_time.total_seconds()-self.last_damage_taken > 3:
+                self.last_damage_taken = pge.delta_time.total_seconds() - 2.9
+                self.health += (self.health/self.maxHealth)*(60/pge.getAvgFPS())
+    
     def update(self) -> None:
         """
         Updates the player object.
@@ -427,10 +501,12 @@ class Player(pg.sprite.Sprite):
         """
         self.input()
         self.animation_update()
+        self.life_manager()
         # Reset the movement vector
         self.reset_vector()
         
         self.position = GAME_CENTER_OF_SCREEN+self.world.offset
+        self.rect.topleft = self.position
         
     def draw(self):
         """

@@ -71,7 +71,9 @@ class World(pg.sprite.Group):
     debug_proj_color:tuple[int,int,int] = (0,255,0)
     debug_enemy_color:tuple[int,int,int] = (255,0,0)
     debug_item_color:tuple[int,int,int] = (0,0,255)
-    def __init__(self):
+    level_up_function:object
+    difficulty:Literal['easy','normal','hard'] = 'normal'
+    def __init__(self,difficulty:Literal['easy','normal','hard'],level_up_function:object):
         """
         Initialize the World object.
         
@@ -79,6 +81,8 @@ class World(pg.sprite.Group):
         setting up the surface, and initializing various attributes.
         """
         super().__init__()
+        
+        self.difficulty = difficulty
         
         # Load the floor and its dimensions
         global floor_surface, floor_width, floor_height
@@ -100,10 +104,12 @@ class World(pg.sprite.Group):
         # Set the start time of the world
         self.start_time = pge.delta_time.total_seconds()
         
-        self.particles = []
+        if callable(level_up_function):
+            self.level_up_function = level_up_function
         
-        for i in range(self.enemy_to_be_spawned):
-            self.spawn_enemy()
+        self.particles = []
+        self.enemy_to_be_spawned = GAME_DIFFICULTY[self.difficulty]['start_enemy']
+        self.spawn_enemies()
 
 
     
@@ -116,7 +122,10 @@ class World(pg.sprite.Group):
         for projectile in self.projectiles:
             if not (projectile in s):
                 self.projectiles.remove(projectile)
-            
+        
+        for item in self.items:
+            if not (item in s):
+                self.items.remove(item)
     
     def spawn_enemy(self):
         EnemyX:int = random.randint(GAME_ENEMY_SPAWN_RANGE[0], GAME_ENEMY_SPAWN_RANGE[1]) * random.choice([-1,1])
@@ -125,6 +134,10 @@ class World(pg.sprite.Group):
         EnemyY += GAME_CENTER_OF_SCREEN[1]
         Enemy:_Enemy = random.choice([NightmareImp, BloodyEye])
         self.enemys.append(Enemy((EnemyX, EnemyY),1,self))
+        
+    def spawn_enemies(self):
+        for i in range(self.enemy_to_be_spawned):
+            self.spawn_enemy()
         
     def draw_floor(self, offset_x, offset_y):
         """
@@ -153,12 +166,16 @@ class World(pg.sprite.Group):
                 pg.draw.line(self.surface, self.debug_proj_color, GAME_CENTER_OF_SCREEN, proj.rect.center-self.offset, int(2*RATIO.med))
                 
     def draw_enemys(self):
-        for enemy in self.enemys:
-            enemy.draw()
-            if CONFIG['debug']:
-                # Connect Player and Enemy with a line
-                pg.draw.line(self.surface, self.debug_enemy_color, GAME_CENTER_OF_SCREEN, enemy.rect.center-self.offset, int(2*RATIO.med))
-    
+        if len(self.enemys) >= 1:
+            for enemy in self.enemys:
+                enemy.draw()
+                if CONFIG['debug']:
+                    # Connect Player and Enemy with a line
+                    pg.draw.line(self.surface, self.debug_enemy_color, GAME_CENTER_OF_SCREEN, enemy.rect.center-self.offset, int(2*RATIO.med))
+        else:
+            self.enemy_to_be_spawned += GAME_DIFFICULTY[self.difficulty]['increase_enemy']
+            self.spawn_enemies()
+        
     def draw_items(self):
         for item in self.items:
             item.draw()
