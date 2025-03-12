@@ -33,7 +33,7 @@ class Main_Menu(Screen):
     
     
     def _update(self):
-        self.title_animation[0] += (0.7 * (60/pge.getAvgFPS()))*self.title_animation[1]
+        self.title_animation[0] += (0.7 * (60/(pge.getAvgFPS() or pge.fps)))*self.title_animation[1]
         if self.title_animation[0] >= 20 or self.title_animation[0] <= 0:
             self.title_animation[1] *= -1
         return super()._update()

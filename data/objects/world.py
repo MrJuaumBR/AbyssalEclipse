@@ -130,8 +130,8 @@ class World(pg.sprite.Group):
     def spawn_enemy(self):
         EnemyX:int = random.randint(GAME_ENEMY_SPAWN_RANGE[0], GAME_ENEMY_SPAWN_RANGE[1]) * random.choice([-1,1])
         EnemyY:int = random.randint(GAME_ENEMY_SPAWN_RANGE[0], GAME_ENEMY_SPAWN_RANGE[1]) * random.choice([-1,1])
-        EnemyX += GAME_CENTER_OF_SCREEN[0]
-        EnemyY += GAME_CENTER_OF_SCREEN[1]
+        EnemyX += GAME_CENTER_OF_SCREEN[0] + self.offset.x
+        EnemyY += GAME_CENTER_OF_SCREEN[1] + self.offset.y
         Enemy:_Enemy = random.choice([NightmareImp, BloodyEye])
         self.enemys.append(Enemy((EnemyX, EnemyY),1,self))
         

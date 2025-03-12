@@ -76,7 +76,7 @@ class Game(Screen):
     
     def time_fix(self) -> str:
         elapsed_time = self.world.elapsed_time
-        humanized:dict = pygameengine.objects.humanize_seconds(int(elapsed_time*1000))
+        humanized:dict = pygameengine.objects.humanize_seconds(elapsed_time)
         x = ''
         cc = {
             'days':'d',
@@ -85,7 +85,7 @@ class Game(Screen):
             'seconds':'s'
         }
         for key, value in humanized.items():
-            if value > 0:
+            if value > 0 and key != 'milliseconds':
                 x += f"{value}{cc[key]}, "
         return x[:-2]
     
