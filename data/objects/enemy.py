@@ -25,7 +25,7 @@ class _Enemy(pg.sprite.Sprite):
     
     moving_right:bool = False
     animation = []
-    distance = [128,256]
+    distance = [128,256, 32]
     _frame = 0
     
     started:pygameengine.timedelta = None
@@ -141,7 +141,7 @@ class BloodyEye(_Enemy):
             for x in range(0, 160, 32)
         ]
         self.rect = self.animation[0].get_rect()
-        
+    
     def enemy_moveset(self):
         player = self.world.player
         direction = (player.position - self.position)
@@ -161,12 +161,21 @@ class BloodyEye(_Enemy):
             self.at_distance = True
             # stop moving when at distance
             self.position = self.position
-            # you can add other behavior here, like shooting at the player
-            for rect in self.rect.collidelistall([i.rect for i in self.world.enemys]):
-                dx,dy = (self.rect.centerx - self.world.enemys[rect].rect.centerx), (self.rect.centery - self.world.enemys[rect].rect.centery)
-                distance = math.hypot(dx, dy)
-                if distance < (32*RATIO.med) and distance > 0:
-                    self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
+    def avoid_enemies(self):
+        """
+        Avoid enemies by moving away from them if they are too close.
+
+        This function is used to prevent enemies from entering each other.
+        It calculates the distance between the current enemy and other enemies,
+        and if the distance is too small, it moves the current enemy away from the other enemy.
+
+        :return: None
+        """
+        for rect in self.rect.collidelistall([i.rect for i in self.world.enemys]):
+            dx,dy = (self.rect.centerx - self.world.enemys[rect].rect.centerx), (self.rect.centery - self.world.enemys[rect].rect.centery)
+            distance = math.hypot(dx, dy)
+            if distance < (self.distance[2]*RATIO.med) and distance > 0:
+                self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
             
     def animate(self):
         self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)
@@ -190,17 +199,29 @@ class NightmareImp(_Enemy):
         self.rect = self.animation[0].get_rect()
         self.rect.topleft = self.position
     
+    def avoid_enemies(self):
+        """
+        Avoid enemies by moving away from them if they are too close.
+
+        This function is used to prevent enemies from entering each other.
+        It calculates the distance between the current enemy and other enemies,
+        and if the distance is too small, it moves the current enemy away from the other enemy.
+
+        :return: None
+        """
+        for rect in self.rect.collidelistall([i.rect for i in self.world.enemys]):
+            dx,dy = (self.rect.centerx - self.world.enemys[rect].rect.centerx), (self.rect.centery - self.world.enemys[rect].rect.centery)
+            distance = math.hypot(dx, dy)
+            if distance < (self.distance[2]*RATIO.med):
+                self.position += pg.math.Vector2(dx/(distance or 1), dy/(distance or 1)) * 2
+    
     def enemy_moveset(self):
         
-        direction = (GAME_CENTER_OF_SCREEN+self.world.offset) - self.position
+        direction = self.world.player.rect.center - self.position
         if direction.length() > 0:
             self.position += direction.normalize() * self.speed
             self.rect.topleft = self.position
-            for rect in self.rect.collidelistall([i.rect for i in self.world.enemys]):
-                dx,dy = (self.rect.centerx - self.world.enemys[rect].rect.centerx), (self.rect.centery - self.world.enemys[rect].rect.centery)
-                distance = math.hypot(dx, dy)
-                if distance < (32*RATIO.med) and distance > 0:
-                    self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
+            GD.new_task(self.avoid_enemies, ())
     
     def animate(self):
         self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)

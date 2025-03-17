@@ -12,8 +12,6 @@ DiscordButton = pw.Button(pge, Position((90,560))*RATIO, PS16, "DISCORD",[COLOR_
 GitHubButton = pw.Button(pge, Position((165,560))*RATIO, PS16, "GITHUB",[pge.Colors.WHITE,COLOR_DARK_BACKGROUND],tip=("GitHub\nRepository",PS14))
 CreditsButton = pw.Button(pge, Position((240,560))*RATIO, PS16, "CREDITS",[pge.Colors.CYAN,COLOR_DARK_BACKGROUND],tip=("Page for\nall the CREDITS",PS14))
 
-
-
 class Main_Menu(Screen):
     id:int = 0x0
     widgets:list[pw.Widget,] = []

@@ -1,6 +1,5 @@
 # Imports
-import pygameengine, os, random, math, datetime, json, sys, JPyDB, typing
-from JPyDB import Columns, Tables
+import pygameengine, os, random, datetime, JPyDB, typing, threading, sys, math
 from pygameengine import pg
 import pygameengine.widgets as pw
 from pygameengine.objects import spritesheet
@@ -193,6 +192,8 @@ class _GameData:
     fps = GAME_FPS_OPTIONS[CONFIG['fps']]
     username:str = f'User{random.randint(10000,99999)}'
     difficulty:str = 'normal'
+    taskquery:list[object,] = []
+    def new_task(self, task:object, args:tuple[object,] = ()): self.taskquery.append((task, args))
 
 
 
@@ -206,6 +207,21 @@ pge.setScreenIcon(pge.loadImage(f"{GAME_PATH_TEXTURES}/icon.png"))
 
 GAME_MENU_BACKGROUND = pg.transform.scale(pge.loadImage(f"{GAME_PATH_TEXTURES}/menubg.png"), GD.screen)
 GAME_MENU_BACKGROUND.set_alpha(80)
+
+def BackgroundThread():
+    print(f'Thread started! ({os.getpid()})')
+    while pge.is_running:
+        for (task, args) in GD.taskquery:
+            if callable(task):
+                try:
+                    task(*args)
+                    GD.taskquery.remove((task, args))
+                except Exception as e:
+                    print(f'Error in thread: {e}')
+        pge.clock.tick(GD.fps)
+
+_BackgroundThread = threading.Thread(target=BackgroundThread,name='BackgroundThread')
+_BackgroundThread.start()
 
     
 # Fast Fix for new Config
@@ -496,7 +512,7 @@ DEBUG_WIDGETS:list[pw.Widget,] = [
     DEBUG_ClearScoreButton
 ]
 
-from data import mainmenu, options, leaderboard, licenses, game, credits
+from . import mainmenu, options, leaderboard, licenses, game, credits
 
 SCREEN_IDS = {
     0x0: mainmenu.Main_Menu,

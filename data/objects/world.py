@@ -196,7 +196,7 @@ class World(pg.sprite.Group):
             self.add(x)
     
     def update(self):
-        self.clear_killed_sprites()
+        GD.new_task(self.clear_killed_sprites, ())
         self.elapsed_time = pge.delta_time.total_seconds() - self.start_time
         for sprite in self.sprites():
             sprite.update()
