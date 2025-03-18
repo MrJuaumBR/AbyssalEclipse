@@ -20,11 +20,11 @@ from ..config import *
 Rarirty = {
     "common":{
         "color":pge.Colors.GRAY,
-        "chance":35 # In %
+        "chance":37 # In %
     },
     "uncommon":{
         "color":pge.Colors.DARKGREEN,
-        "chance":20
+        "chance":23
     },
     "rare":{
         "color":pge.Colors.DARKORANGE,
@@ -32,11 +32,11 @@ Rarirty = {
     },
     "epic":{
         "color":pge.Colors.DARKPURPLE,
-        "chance":16
+        "chance":14
     },
     "legendary":{
         "color":pge.Colors.BLACK,
-        "chance":10
+        "chance":7
     },
     "mythic":{
         "color":pge.Colors.RED,
@@ -56,7 +56,7 @@ class Card:
     surface_rect:pg.rect.RectType
     
     rect:pg.Rect
-    size:tuple[int,int] = (170,260)
+    size:tuple[int,int] = (150,240)
     selected:bool = False
     
     
@@ -76,12 +76,12 @@ class Card:
         
         self.widgets = []
         
-        self.surface = pg.Surface(self.size,pg.SRCALPHA)
+        self.surface = pg.Surface(Position(self.size)*RATIO,pg.SRCALPHA)
         self.surface_rect = self.surface.get_rect()
         
         if icon_rect is not None:
             self.icon = Icons_spritesheet.image_at(pg.Rect(*icon_rect),-1)
-            self.icon = pg.transform.scale(self.icon, (48,48))
+            self.icon = pg.transform.scale(self.icon, Position((48,48))*RATIO)
         else:
             self.icon = None
         
@@ -95,20 +95,22 @@ class Card:
         self.tip = pw.Tip(pge, f'Name: {str(self.cardname).capitalize()}\nRarity: {str(self.rarity).capitalize()}', PS14)
         
         # Draw Title
-        pge.draw_text((self.surface_rect.centerx,11), str(self.cardname).capitalize(), self.CPS22, Rarirty[self.rarity]['color'], surface=self.surface, root_point='center')
+        pge.draw_text((self.surface_rect.centerx,11), str(self.cardname).capitalize()[:13], PS22, Rarirty[self.rarity]['color'], surface=self.surface, root_point='center')
         
         # Draw Description
         pge.draw_rect((2,72), (self.surface.get_size()[0]-4, self.surface.get_size()[1]-74), pge.Colors.BROWN, surface=self.surface, root_point='topleft')
         
         # Draw Icon
         if self.icon is not None:
-            self.surface.blit(self.icon, (66,22))
+            r = self.icon.get_rect()
+            r.center = (self.surface_rect.centerx, 60)
+            self.surface.blit(self.icon, r)
         
         lines = self.get_lines(self.description)
         y = 71
         for line in lines.values():
-            pge.draw_text((5,y), line, self.CPS18, pge.Colors.WHITE, surface=self.surface)
-            y += 15
+            pge.draw_text(Position((5,y))*RATIO, line, PS18, pge.Colors.WHITE, surface=self.surface)
+            y += 20
     
     def on_hover(self):
         if self.rect.collidepoint(pge.mouse.pos): self.hover = True
@@ -133,7 +135,7 @@ class Card:
                 lines[line_number] = current_line.strip()
                 current_line = ''
                 line_number += 1
-            elif pg.font.Font.size(self.CPS14, current_line + ' ' + word)[0]+10 > (self.surface.get_size()[0]-50):
+            elif (pg.font.Font.size(PS14, current_line + ' ' + word)[0]+10) * RATIO.x > (self.surface.get_size()[0]-50)*RATIO.x:
                 lines[line_number] = current_line.strip()
                 current_line = word
                 line_number += 1
@@ -147,7 +149,7 @@ class Card:
     def draw(self, pos:tuple, surface:pg.SurfaceType = None):
         if surface is None:
             surface = pge.screen
-        surface.blit(pg.transform.scale(self.surface, Position((170,260))*RATIO), pos)
+        surface.blit(self.surface, pos)
         self.rect.topleft = pos
         
         self.on_hover()
@@ -307,6 +309,12 @@ class CardHandler:
     def __init__(self):
         self.cards = [cls() for cls in Card.__subclasses__()]
     
+    def random_rarity(self, luck:float=1.0):
+        return random.choices(list(Rarirty.keys()), weights=[(Rarirty[r]['chance']/100) * luck for r in Rarirty.keys()])[0]
+    
+    def random_rarities(self, times:int=3, luck:float=1.0):
+        return [self.random_rarity(luck=luck) for i in range(times)]
+    
     def cards_by_rarity(self):
         """
         A way to randomize cards by rarity
@@ -330,15 +338,19 @@ class CardHandler:
     def only_cards_of_rarity(self, rarity):
         return [c for c in self.cards if c.rarity == rarity]
     
-    def random_card(self) -> Card:
-        cards = self.only_cards_of_rarity(self.cards_by_rarity())
+    def random_card(self, luck:float=1.0) -> Card:
+        cards = self.only_cards_of_rarity(self.random_rarity(luck=luck))
         if len(cards) == 0: return self.random_card()
         return random.choice(cards)
         
-    def random_cards(self, times:int=3) -> list[Card,]:
+    def random_cards(self, times:int=3, luck:float=1.0, can_repeat:bool=False) -> list[Card,]:
         x = []
         for i in range(times):
-            x.append(self.random_card())
+            card:Card = self.random_card(luck=luck)
+            if not can_repeat:
+                while card in x:
+                    card = self.random_card(luck=luck)
+            x.append(card)
         return x
                        
 # Test

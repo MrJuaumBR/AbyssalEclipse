@@ -48,7 +48,7 @@ class Item(pg.sprite.Sprite):
         pass
     
     def animate(self):
-        self.frame = (self.frame+(0.5*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)#(self.frame + 0.5 * (pge.getAvgFPS()/pge.fps)) % len(self.animation)
+        self.frame = self.frame+(0.5*(pge.getAvgFPS()/pge.fps)*GD.fps_ratio) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
     
     def draw(self):

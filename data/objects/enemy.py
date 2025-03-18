@@ -10,7 +10,7 @@ class _Enemy(pg.sprite.Sprite):
     
     health:int = 40
     max_health:int = 40
-    speed:float = 4.5
+    speed:float = 3.8
     damage:float = 5.0
     attack_delay:float = 1.2
     
@@ -146,21 +146,23 @@ class BloodyEye(_Enemy):
         player = self.world.player
         direction = (player.position - self.position)
         distance = direction.length()
-
         if distance < self.distance[0] * RATIO.med:
             self.at_distance = False
             direction = direction.normalize() * -1  # move away from the player
-            self.position += direction * self.speed
+            self.position += direction * (self.speed * GD.fps_ratio)
             self.moving_right = direction.x > 0
+            GD.new_task(self.avoid_enemies, ())
         elif distance > self.distance[1] * RATIO.med:
             self.at_distance = False
             direction = direction.normalize()  # move towards the player
-            self.position += direction * self.speed
+            self.position += direction * (self.speed * GD.fps_ratio)
             self.moving_right = direction.x > 0
+            GD.new_task(self.avoid_enemies, ())
         else:
             self.at_distance = True
             # stop moving when at distance
             self.position = self.position
+            GD.new_task(self.avoid_enemies, ())
     def avoid_enemies(self):
         """
         Avoid enemies by moving away from them if they are too close.
@@ -178,7 +180,7 @@ class BloodyEye(_Enemy):
                 self.position += pg.math.Vector2(dx/distance, dy/distance) * 2
             
     def animate(self):
-        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)
+        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * GD.fps_ratio) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
         if self.moving_right:
             self.surface = pg.transform.flip(self.surface, True, False)
@@ -219,12 +221,12 @@ class NightmareImp(_Enemy):
         
         direction = self.world.player.rect.center - self.position
         if direction.length() > 0:
-            self.position += direction.normalize() * self.speed
+            self.position += direction.normalize() * (1+(self.speed * GD.fps_ratio))
             self.rect.topleft = self.position
             GD.new_task(self.avoid_enemies, ())
     
     def animate(self):
-        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animation)
+        self.frame = (self.frame+(0.3*(pge.getAvgFPS()/pge.fps)) * GD.fps_ratio) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
         if self.moving_right:
             self.surface = pg.transform.flip(self.surface, True, False)

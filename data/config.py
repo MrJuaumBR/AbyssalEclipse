@@ -193,6 +193,7 @@ class _GameData:
     username:str = f'User{random.randint(10000,99999)}'
     difficulty:str = 'normal'
     taskquery:list[object,] = []
+    fps_ratio:float = 1.0
     def new_task(self, task:object, args:tuple[object,] = ()): self.taskquery.append((task, args))
 
 
@@ -209,7 +210,8 @@ GAME_MENU_BACKGROUND = pg.transform.scale(pge.loadImage(f"{GAME_PATH_TEXTURES}/m
 GAME_MENU_BACKGROUND.set_alpha(80)
 
 def BackgroundThread():
-    print(f'Thread started! ({os.getpid()})')
+    c = pg.time.Clock()
+    print(f'Thread started pid: ({os.getpid()})')
     while pge.is_running:
         for (task, args) in GD.taskquery:
             if callable(task):
@@ -218,7 +220,7 @@ def BackgroundThread():
                     GD.taskquery.remove((task, args))
                 except Exception as e:
                     print(f'Error in thread: {e}')
-        pge.clock.tick(GD.fps)
+        c.tick(int(GD.fps-1))
 
 _BackgroundThread = threading.Thread(target=BackgroundThread,name='BackgroundThread')
 _BackgroundThread.start()
@@ -395,16 +397,15 @@ class Position(tuple):
     y:int
     def __init__(self, xy:tuple[int,int], *args, **kwargs):
         super().__init__()
-        self.x = xy[0]
-        self.y = xy[1]
+        self.x,self.y = xy
     
     def __mul__(self, other):
-        if type(other) in [tuple, list, Position]:
-            return tuple([x * y for x, y in zip(self, other)])
-        elif type(other) in [int, float]:
-            return tuple([x * other for x in self])
-        elif type(other) == RatioType:
-            return tuple([x * y for x, y in zip(self, other.ratio_vector)])
+        if isinstance(other, (tuple, list, Position)):
+            return tuple(x * y for x, y in zip(self, other))
+        elif isinstance(other, (int, float)):
+            return tuple(x * other for x in self)
+        elif isinstance(other, RatioType):
+            return tuple(x * y for x, y in zip(self, other.ratio_vector))
         
     
 
@@ -462,17 +463,11 @@ class Screen(object):
         * Escape Key;
         * ...
         """
-        self.SCH.updateWidgets(self)
         if not (GD._current_screen in self.blacklist):
-            _IDK = pge.mouse.button_4 or pge.hasKeyPressed(pg.K_ESCAPE)
-            if _IDK:
+            if pge.mouse.button_4 or pge.hasKeyPressed(pg.K_ESCAPE) or (pge.joystick.main and pge.joystick.main.getButtonByString("b")):
                 self.SCH.changeScreen(GD._old_cs)
-
                 self.exiting()
-            elif pge.joystick.main: # Has a controller/joystick
-                if pge.joystick.main.getButtonByString("b"):
-                    self.SCH.changeScreen(GD._old_cs)
-                    self.exiting()
+        self.SCH.updateWidgets(self)
                 
 
 def LoadNews() -> str:
@@ -624,6 +619,7 @@ class ScreenHandler(object):
                 Critical = True
                 Color = pge.Colors.RED
             pge.draw_text(Position((730,10))*RATIO,f"FPS: {'(!) ' if Critical else ''}{FPS}",PS14, Color)
+        GD.fps_ratio = 60/(pge.getAvgFPS() or 60)
         if CONFIG['debug']:
             # Text
             Text = f"Screen(Id, Old): {self.current_screen, GD._old_cs}"

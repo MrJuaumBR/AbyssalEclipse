@@ -3,11 +3,10 @@ from ..config import *
 from pygame.locals import *
 
 Player_Frames_Positions = {
-    'idle':[(0,0),(32,0),(64,0),(96,0),(128,0)],
-    'top':[(0,32),(32,32),(64,32),(96,32),(128,32)],
-    'left':[(0,64),(32,64),(64,64),(96,64),(128,64)],
-    'bottom':[(0,96),(32,96),(64,96),(96,96),(128,96)],
-    # 'right':[], => Just invert the left for right :)
+    'top':[(16,525),(80,525),(144,525),(208,525),(272,525), (336,525), (400,525), (464,525)], # 8 Frames
+    'left':[(16,589),(80,589),(144,589),(208,589),(272,589), (336,589), (400,589), (464,589)], # 8 Frames
+    'right':[(16,717),(80,717),(144,717),(208,717),(272,717), (336,717), (400,717), (464,717)], # 8 Frames
+    'bottom':[(16,654),(80,654),(144,654),(208,654),(272,654), (336,654), (400,654), (464,654)], # 8 Frames
 }
 
 Weapon_Frames_Positions = [
@@ -189,7 +188,7 @@ class Player(pg.sprite.Sprite):
     
     money:int = 0
     
-    speed:float = 5.0
+    speed:float = 4.0
     
     movement_vector:pg.math.Vector2 = pg.math.Vector2(0,0)
     
@@ -205,12 +204,12 @@ class Player(pg.sprite.Sprite):
         'left':[],
         'right':[],
         'bottom':[],
-        'idle':[]
     }
     
-    sprite_size:int = 64
+    sprite_size:tuple[int,int] = (32,50)
     
-    state:Literal['top','left','right','bottom','idle'] = 'idle'
+    state:Literal['top','left','right','bottom'] = 'bottom'
+    is_idle:bool = True
     _frame:int = 0
     @property
     def frame(self, value:int=None) -> int:
@@ -253,7 +252,7 @@ class Player(pg.sprite.Sprite):
         """
         super().__init__(world)
         self.world = world
-        self.surface = pge.createSurface(*Position((self.sprite_size,self.sprite_size))*RATIO)
+        self.surface = pge.createSurface(*Position(self.sprite_size)*RATIO)
         self.surface.fill((100,100,255))
         
         self.last_reload_time = pge.delta_time.total_seconds() # the time when the player last reloaded
@@ -282,21 +281,17 @@ class Player(pg.sprite.Sprite):
         - left
         - right
         - bottom
-        - idle
         """
         # load the spritesheet
         ss = pge.createSpritesheet(GAME_PATH_TEXTURES+'/player.png')
         # loop through all the animations and load their frames
-        for key in ['top','left','right','bottom','idle']:
+        for key in ['top','left','right','bottom']:
             self.animations[key] = []
-            for frame in Player_Frames_Positions[(key if key != 'right' else 'left')]:
+            for frame in Player_Frames_Positions[key]:
                 # get the frame from the spritesheet
-                s = ss.image_at(Rect(frame[0],frame[1],32,32),255)
+                s = ss.image_at(Rect(frame[0],frame[1],*self.sprite_size),255)
                 # resize the frame to fit the size of the player
-                s = pg.transform.scale(s, Position((self.sprite_size,self.sprite_size))*RATIO)
-                # flip the frame horizontally if the animation is for the right direction
-                if key == 'right':
-                    s = pg.transform.flip(s, True, False)
+                s = pg.transform.scale(s, Position(self.sprite_size)*RATIO)
                 # add the frame to the list of frames for the animation
                 self.animations[key].append(s)
 
@@ -369,9 +364,9 @@ class Player(pg.sprite.Sprite):
         if pge.joystick.main: # Has a controller/joystick
             x,y = pge.joystick.main.getAxisByString('left')
             if abs(x) > 0.2:
-                self.movement_vector.x += x * self.speed
+                self.movement_vector.x += x * self.speed * GD.fps_ratio
             if abs(y) > 0.2:
-                self.movement_vector.y += y * self.speed
+                self.movement_vector.y += y * self.speed * GD.fps_ratio
         else:
             UP = pge.hasKeyPressed(K_w) or pge.hasKeyPressed(K_UP)
             DOWN = pge.hasKeyPressed(K_s) or pge.hasKeyPressed(K_DOWN)
@@ -381,10 +376,10 @@ class Player(pg.sprite.Sprite):
             
             # if pge.hasKeyPressed(K_LCTRL) and UP: self.experience += 5
             
-            if UP: self.movement_vector.y -= self.speed
-            elif DOWN: self.movement_vector.y += self.speed
-            if LEFT: self.movement_vector.x -= self.speed
-            elif RIGHT: self.movement_vector.x += self.speed
+            if UP: self.movement_vector.y -= self.speed * GD.fps_ratio
+            elif DOWN: self.movement_vector.y += self.speed * GD.fps_ratio
+            if LEFT: self.movement_vector.x -= self.speed * GD.fps_ratio
+            elif RIGHT: self.movement_vector.x += self.speed * GD.fps_ratio
             
             
             
@@ -404,7 +399,7 @@ class Player(pg.sprite.Sprite):
             self.movement_vector.x *= self.speed
             self.movement_vector.y *= self.speed
             
-        r = pg.Rect(0,0,*(Position((self.sprite_size,self.sprite_size))*RATIO))
+        r = pg.Rect(0,0,*(Position(self.sprite_size)*RATIO))
         r.topleft = self.movement_vector + self.world.offset
         
         # Update world offset
@@ -415,6 +410,11 @@ class Player(pg.sprite.Sprite):
         self.register_speed['m/s'] = self.get_speed('m/s')
         self.register_speed['km/h'] = self.get_speed('km/h')
         self.register_speed['mph'] = self.get_speed('mph')
+        
+        if pge.hasKeyPressed(K_SPACE) and pge.hasKeyPressed(K_LCTRL): self.experience += 10
+        if pge.hasKeyPressed(K_l) and pge.hasKeyPressed(K_LCTRL):
+            self.maxHealth = 10000000000
+            self.health = 10000000000
         
     
     def animation_update(self):
@@ -431,14 +431,17 @@ class Player(pg.sprite.Sprite):
             'left' if Vector_X < 0 else
             'right' if Vector_X > 0 else
             'top' if Vector_Y < 0 else
-            'bottom' if Vector_Y > 0 else
-            'idle'
+            'bottom'
         )
+        if Vector_X == 0 and Vector_Y == 0:
+            self.is_idle = True
+            self.state = 'bottom'
+        else: self.is_idle = False
         
         # Update Current Frame
         # Animation Needs to be framerate independent also consideer player speed from register_speed['px/s']
         # self.frame = (self.frame + (min(0.1,self.magnitude*0.2) if self.state != 'idle' else 0.07) * (pge.getAvgFPS()/pge.fps)) % len(self.animations[self.state])
-        self.frame = (self.frame+((0.3 if self.state != 'idle' else 0.07)*(pge.getAvgFPS()/pge.fps)) * (60/pge.getAvgFPS())) % len(self.animations[self.state])
+        self.frame = (self.frame+((0.07 if self.is_idle else 0.3)*(pge.getAvgFPS()/pge.fps)) * GD.fps_ratio) % (2 if self.is_idle else len(self.animations[self.state]))
         
         
         self.surface = self.animations[self.state][int(self.frame)]

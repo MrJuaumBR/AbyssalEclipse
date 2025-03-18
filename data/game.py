@@ -1,6 +1,7 @@
 from .config import *
 
-from .objects.world import World, Card
+from .objects.world import World
+from .objects.cards import Card, CardHandler
 
 LifeBar = pw.Progressbar(pge, Position((5,545))*RATIO, Position((250,20))*RATIO, [pge.Colors.BLOODRED, pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Health", PS16, tip=("Health", PS14))
 ExpBar = pw.Progressbar(pge, Position((5,570))*RATIO, Position((790,15))*RATIO, [pge.Colors.BLUE,pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Experience", PS14 , tip=("Experience", PS12))
@@ -27,9 +28,11 @@ class Game(Screen):
     world:World
     
     pause_timer:int = 0
+    CHR:CardHandler
+    current_cards:list[Card, ] = []
     def __init__(self, SCH):
         super().__init__(SCH)
-        
+        self.CHR = CardHandler()
         self.widgets.append(LifeBar)
         self.widgets.append(ExpBar)
         
@@ -41,6 +44,7 @@ class Game(Screen):
     
     def level_up(self):
         self.paused:int = 0x2
+        self.current_cards = self.CHR.random_cards(5,1.0, can_repeat=False)
     
     def _update(self):
         if ((pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4) or (pge.joystick.main and pge.joystick.main.getButtonByString("start"))) and self.pause_timer <= 0 and not self.paused == 0x2:
@@ -65,9 +69,25 @@ class Game(Screen):
                 self.exiting()
                 pge.exit()
         elif self.paused == 0x2: # Leveled Up
-            self.content_offset.y += self.increase_offset.y * (0.025 * (60/pge.getAvgFPS()))
+            self.content_offset.y += self.increase_offset.y * (0.025 * GD.fps_ratio)
             if self.content_offset.y >= 1 or self.content_offset.y <= 0:
                 self.increase_offset.y *= -1
+                
+            if pge.hasKeyPressed(pg.K_1):
+                print(f'{self.current_cards[0].cardname} was selected!')
+                self.paused = 0x0
+            elif pge.hasKeyPressed(pg.K_2):
+                print(f'{self.current_cards[1].cardname} was selected!')
+                self.paused = 0x0
+            elif pge.hasKeyPressed(pg.K_3):
+                print(f'{self.current_cards[2].cardname} was selected!')
+                self.paused = 0x0
+            elif pge.hasKeyPressed(pg.K_4):
+                print(f'{self.current_cards[3].cardname} was selected!')
+                self.paused = 0x0
+            elif pge.hasKeyPressed(pg.K_5):
+                print(f'{self.current_cards[4].cardname} was selected!')
+                self.paused = 0x0
             
         if self.pause_timer > 0: self.pause_timer -= 1
         
@@ -112,7 +132,12 @@ class Game(Screen):
             for element in pause_elements:
                 element.enable = False
         elif self.paused == 0x2:
-            pge.draw_text(Position((400,50+(self.content_offset.y*5)))*RATIO, f"Level Up to {self.world.player.level}!", PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')
+            pge.draw_text(Position((400,50+(self.content_offset.y*3)))*RATIO, f"Level Up to {self.world.player.level}!", PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')
+            for index, card in enumerate(self.current_cards):
+                x = 5+(160*index)
+                y = 250+(self.content_offset.y*5)
+                pge.draw_text(Position((x-2, y-24))*RATIO, f'({index+1})', PS18, pge.Colors.WHITE, surface=pge.screen)
+                card.draw(Position((x,250+(self.content_offset.y*5)))*RATIO, pge.screen)
     
     def exiting(self):
         # self.world:World = World(GD.difficulty,self.level_up)
