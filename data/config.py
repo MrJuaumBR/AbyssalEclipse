@@ -94,20 +94,26 @@ GAME_DIFFICULTY = {
     'easy':{
         'enemy_life':0.95,
         'enemy_speed':0.95,
+        'enemy_damage':0.95,
         'start_enemy':7,
         'increase_enemy':4,
+        'exp_drop_bonus':1,
     },
     'normal':{
         'enemy_life':1,
         'enemy_speed':1,
+        'enemy_damage':1,
         'start_enemy':9,
         'increase_enemy':5,
+        'exp_drop':1.025,
     },
     'hard':{
         'enemy_life':1.05,
         'enemy_speed':1.05,
+        'enemy_damage':1.05,
         'start_enemy':11,
         'increase_enemy':6,
+        'exp_drop':1.075,
     },
 }
 

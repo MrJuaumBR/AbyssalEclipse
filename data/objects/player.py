@@ -23,7 +23,7 @@ class Projectile(pg.sprite.Sprite):
     player:object
     surface:pg.SurfaceType
     
-    damage:float = 10.0
+    damage:float = 100.0
     start_pos:pg.math.Vector2 = pg.math.Vector2(0,0)
     mouse_pos:pg.math.Vector2 = pg.math.Vector2(0,0)
     position:pg.math.Vector2 = pg.math.Vector2(0,0)
