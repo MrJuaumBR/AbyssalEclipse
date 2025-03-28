@@ -2,15 +2,15 @@ from .config import *
 
 # +++ MAIN MENU SCREEN +++ #
 
-PlayButton = pw.Button(pge, Position((15,120))*RATIO, PS36, "PLAY",[COLOR_LIGHT_ACCEPT,COLOR_DARK_BACKGROUND])
-OptionsButton = pw.Button(pge, Position((15,175))*RATIO, PS36, "OPTIONS",[COLOR_LIGHT_BLUE,COLOR_DARK_BACKGROUND])
-ExitButton = pw.Button(pge, Position((15,230))*RATIO, PS36, "EXIT",[COLOR_LIGHT_REJECT,COLOR_DARK_BACKGROUND])
+PlayButton = pw.Button(pge, Position((15,120))*RATIO, PS36, LGS.translate(0),[COLOR_LIGHT_ACCEPT,COLOR_DARK_BACKGROUND])
+OptionsButton = pw.Button(pge, Position((15,175))*RATIO, PS36, LGS.translate(1),[COLOR_LIGHT_BLUE,COLOR_DARK_BACKGROUND])
+ExitButton = pw.Button(pge, Position((15,230))*RATIO, PS36, LGS.translate(2),[COLOR_LIGHT_REJECT,COLOR_DARK_BACKGROUND])
 
 # Triple Buttons = 3/ Area of the others
-LicenseButton = pw.Button(pge, Position((15,560))*RATIO, PS16, "LICENSES",[pge.Colors.YELLOW,COLOR_DARK_BACKGROUND],tip=("Page for\nall the LICENSES",PS14))
-DiscordButton = pw.Button(pge, Position((90,560))*RATIO, PS16, "DISCORD",[COLOR_DISCORD_BLUE,COLOR_DARK_BACKGROUND],tip=("Discord\nServer Link",PS14))
-GitHubButton = pw.Button(pge, Position((165,560))*RATIO, PS16, "GITHUB",[pge.Colors.WHITE,COLOR_DARK_BACKGROUND],tip=("GitHub\nRepository",PS14))
-CreditsButton = pw.Button(pge, Position((240,560))*RATIO, PS16, "CREDITS",[pge.Colors.CYAN,COLOR_DARK_BACKGROUND],tip=("Page for\nall the CREDITS",PS14))
+LicenseButton = pw.Button(pge, Position((15,560))*RATIO, PS16, LGS.translate(3),[pge.Colors.YELLOW,COLOR_DARK_BACKGROUND],tip=(LGS.translate(29),PS14))
+DiscordButton = pw.Button(pge, Position((90,560))*RATIO, PS16, "DISCORD",[COLOR_DISCORD_BLUE,COLOR_DARK_BACKGROUND],tip=(LGS.translate(30),PS14))
+GitHubButton = pw.Button(pge, Position((165,560))*RATIO, PS16, "GITHUB",[pge.Colors.WHITE,COLOR_DARK_BACKGROUND],tip=(LGS.translate(31),PS14))
+CreditsButton = pw.Button(pge, Position((240,560))*RATIO, PS16, LGS.translate(4),[pge.Colors.CYAN,COLOR_DARK_BACKGROUND],tip=(LGS.translate(32),PS14))
 
 class Main_Menu(Screen):
     id:int = 0x0

@@ -87,7 +87,7 @@ class _Enemy(pg.sprite.Sprite):
     def draw(self):
         r = pg.rect.Rect(0,0, *Position((48,48))*RATIO)
         r.topleft = self.position.xy - self.world.offset
-        self.world.surface.blit(self.surface, r)
+        self.world.surface.blit(self.surface, r.copy())
         if CONFIG['debug']:
             pg.draw.rect(self.world.surface, self.world.debug_enemy_color, r, 1)
             

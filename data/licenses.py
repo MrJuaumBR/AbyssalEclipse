@@ -1,6 +1,6 @@
 from .config import *
 # +++ LICENSES +++ #
-BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)",[COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND,COLOR_LIGHT_BORDER])
+BackButtonLicenses = pw.Button(pge, Position((15,55))*RATIO, PS16, LGS.translate(5),[COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND,COLOR_LIGHT_BORDER])
 
 class Licenses(Screen):
     id:int = 0x3
@@ -13,8 +13,6 @@ class Licenses(Screen):
         
         self.set_license_text()
         
-        # LicenseText = pw.Textarea(pge, (5*RATIO, 80*RATIO), [pge.Colors.ANTIFLASH, pge.Colors.ANTIFLASH, pge.Colors.BLACK], PS14, self.license_text)
-        # LicenseText.editable = False
         LicenseText = pw.Longtext(pge, Position((5, 80))*RATIO, PS12, self.license_text, [pge.Colors.ANTIFLASH, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
         
         self.widgets.append(LicenseText)
@@ -39,6 +37,6 @@ class Licenses(Screen):
             self.SCH.changeScreen(0x0)
         
         # Draw Main Title
-        pge.draw_text(Position((20,20))*RATIO,"Licenses",RBG24, (125,90,115), alpha=80)
-        pge.draw_text(Position((10,10))*RATIO,"Licenses",RBG26, (255,255,255))
+        pge.draw_text(Position((20,20))*RATIO,LGS.translate(35),RBG24, (125,90,115), alpha=80)
+        pge.draw_text(Position((10,10))*RATIO,LGS.translate(35),RBG26, (255,255,255))
     

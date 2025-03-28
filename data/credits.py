@@ -1,7 +1,7 @@
 
 from .config import *
 
-BackButtonCredits = pw.Button(pge, Position((15,55))*RATIO, PS16, "BACK (B)", [COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND, COLOR_DARK_BORDER])
+BackButtonCredits = pw.Button(pge, Position((15,55))*RATIO, PS16, LGS.translate(5), [COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND, COLOR_DARK_BORDER])
 
 News = LoadNews()
 NewsArea = pw.Longtext(pge, Position((600,320))*RATIO, PS14, News, [pge.Colors.BLACK, COLOR_LIGHT_BACKGROUND, COLOR_DARK_BACKGROUND], alpha=200)
@@ -53,8 +53,8 @@ class Credits(Screen):
             self.SCH.changeScreen(0x0)
             
         # Draw Main Title
-        pge.draw_text(Position((20,20))*RATIO,"Credits",RBG24, (125,90,115), alpha=80)
-        pge.draw_text(Position((10,10))*RATIO,"Credits",RBG26, (255,255,255))
+        pge.draw_text(Position((20,20))*RATIO,LGS.translate(34),RBG24, (125,90,115), alpha=80)
+        pge.draw_text(Position((10,10))*RATIO,LGS.translate(34),RBG26, (255,255,255))
         
         # Draw Credits
         for index, item in enumerate(self.texts):

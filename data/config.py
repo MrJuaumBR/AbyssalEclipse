@@ -1,5 +1,5 @@
 # Imports
-import pygameengine, os, random, datetime, JPyDB, typing, threading, sys, math
+import pygameengine, os, random, datetime, JPyDB, typing, threading, sys, math, json
 from pygameengine import pg
 import pygameengine.widgets as pw
 from pygameengine.objects import spritesheet
@@ -88,6 +88,11 @@ GAME_FLOOR_COLOR_OPTIONS = [
     'purple',
     'orange'
 ]
+GAME_LANGUAGE_OPTIONS = [
+    'en-us',
+    'pt-br'
+]
+
 # Game Difficulty
 
 GAME_DIFFICULTY = {
@@ -131,6 +136,7 @@ class GAME_DEFAULT_CFG_TYPE(typing.TypedDict):
     trail_color:int
     floor_color:int
     volume:float
+    lang:Literal['en-us','pt-br']
 
 GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "fullscreen":True,
@@ -145,7 +151,8 @@ GAME_DEFAULT_CFG:GAME_DEFAULT_CFG_TYPE = {
     "trail_color":1,
     'speed_measure':0,
     'floor_color':0,
-    'volume':0.8
+    'volume':0.8,
+    'lang':'en-us'
 }
 
 class GAME_WEAPON_ATTRIBUTTES_TYPE(typing.TypedDict):
@@ -473,7 +480,7 @@ class Screen(object):
             if pge.mouse.button_4 or pge.hasKeyPressed(pg.K_ESCAPE) or (pge.joystick.main and pge.joystick.main.getButtonByString("b")):
                 self.SCH.changeScreen(GD._old_cs)
                 self.exiting()
-        self.SCH.updateWidgets(self)
+        GD.new_task(self.SCH.updateWidgets, (self,))# Fix for glitch
                 
 
 def LoadNews() -> str:
@@ -505,6 +512,38 @@ def LoadNews() -> str:
         news += f"--------------------------------------------\n:: {new['title']} ::\n> Posted in: {new['date']}\n\n{new['content']}\n--------------------------------------------\n"
     return news
 
+class TranslationSystem:
+    lang:str = 'en-us'
+    
+    aliases:dict = {
+        'en-us':['english', 'en'],
+        'pt-br':['portuguese', 'pt'],
+    }
+    
+    files:dict = {}
+    def __init__(self, lang: str = Literal['en-us','pt-br']) -> None:
+        for dir in os.listdir(GAME_PATH_ASSETS + '/translation/'):
+            self.files[str(dir.split('.')[0])] = (json.loads(open(GAME_PATH_ASSETS + '/translation/' + dir, 'rb').read()))
+        self.lang = str(lang).lower()
+        
+    def translate(self, text_id:any, language:str=None) -> str:
+        if language is None: language = self.lang
+        try:
+            return str(self.files[str(language).lower()][str(text_id)])
+        except:
+            return self.translate(text_id, 'en-us')
+        return 'Not Found Translation'
+    
+    def translate_list(self, list_id:any, language:str=None) -> list[str,]:
+        if language is None: language = self.lang
+        try:
+            return list(self.files[str(language).lower()][str(list_id)])
+        except:
+            return self.translate_list(list_id, 'en-us')
+        return ['Not Found Translation']
+        
+LGS = TranslationSystem(CONFIG['lang'])
+
 DEBUG_CreateScoreButton = pw.Button(pge, Position((20,50))*RATIO, PS16, "Create Score", [COLOR_DARK_GREEN, pge.Colors.ALMOND])
 DEBUG_ClearScoreButton = pw.Button(pge, Position((20,80))*RATIO, PS16, "Clear Score", [COLOR_DARK_GREEN, pge.Colors.ALMOND])
 
@@ -512,6 +551,7 @@ DEBUG_WIDGETS:list[pw.Widget,] = [
     DEBUG_CreateScoreButton,
     DEBUG_ClearScoreButton
 ]
+
 
 from . import mainmenu, options, leaderboard, licenses, game, credits
 
@@ -577,7 +617,7 @@ class ScreenHandler(object):
         screen = self.findScreen(screen_id)
         if screen is not None:
             if screen_id <= self.current_screen:
-                self.updateWidgets(screen) # Fix for glitch
+                GD.new_task(self.updateWidgets, (screen,))# Fix for glitch
             if screen_id in self.reset_when_change_screen:
                 # Pop from self.SCREENS_RELATIONS
                 self.SCREENS_RELATIONS.pop(self.SCREENS_RELATIONS.index(screen))
@@ -624,7 +664,7 @@ class ScreenHandler(object):
             else:
                 Critical = True
                 Color = pge.Colors.RED
-            pge.draw_text(Position((730,10))*RATIO,f"FPS: {'(!) ' if Critical else ''}{FPS}",PS14, Color)
+            pge.draw_text(Position((730,10))*RATIO,LGS.translate(33).format('(!) ' if Critical else '', FPS),PS14, Color)
         GD.fps_ratio = 60/(pge.getAvgFPS() or 60)
         if CONFIG['debug']:
             # Text
@@ -663,4 +703,3 @@ class ScreenHandler(object):
             
         
 SCH = ScreenHandler()
-

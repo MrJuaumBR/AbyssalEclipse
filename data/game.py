@@ -3,20 +3,22 @@ from .config import *
 from .objects.world import World
 from .objects.cards import Card, CardHandler
 
-LifeBar = pw.Progressbar(pge, Position((5,545))*RATIO, Position((250,20))*RATIO, [pge.Colors.BLOODRED, pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Health", PS16, tip=("Health", PS14))
-ExpBar = pw.Progressbar(pge, Position((5,570))*RATIO, Position((790,15))*RATIO, [pge.Colors.BLUE,pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, "Experience", PS14 , tip=("Experience", PS12))
+LifeBar = pw.Progressbar(pge, Position((5,545))*RATIO, Position((250,20))*RATIO, [pge.Colors.BLOODRED, pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, LGS.translate(46), PS16, tip=(LGS.translate(46), PS14))
+ExpBar = pw.Progressbar(pge, Position((5,570))*RATIO, Position((790,15))*RATIO, [pge.Colors.BLUE,pge.Colors.BLACK, pge.Colors.ALMOND, pge.Colors.WHITE], 1, LGS.translate(47), PS14 , tip=(LGS.translate(47), PS12))
 
 # Pause Menu Widgets
 
-ResumeButton = pw.Button(pge, Position((15,75))*RATIO, PS16, "RESUME", [COLOR_LIGHT_ACCEPT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
-ExitToMenuButton = pw.Button(pge, Position((15,115))*RATIO, PS16, "EXIT TO MENU", [COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
-ExitGame = pw.Button(pge, Position((15,155))*RATIO, PS16, "EXIT GAME", [COLOR_REJECT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
+ResumeButton = pw.Button(pge, Position((15,75))*RATIO, PS16, LGS.translate(48), [COLOR_LIGHT_ACCEPT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
+ExitToMenuButton = pw.Button(pge, Position((15,115))*RATIO, PS16, LGS.translate(49), [COLOR_LIGHT_REJECT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
+ExitGame = pw.Button(pge, Position((15,155))*RATIO, PS16, LGS.translate(50), [COLOR_REJECT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
 
 ResumeButton.enable = False
 ExitToMenuButton.enable = False
 ExitGame.enable = False
 
 
+pause_elements = [ResumeButton, ExitToMenuButton, ExitGame]
+game_elements = [LifeBar, ExpBar]
 
 class Game(Screen):
     id:int = 0x4
@@ -46,26 +48,30 @@ class Game(Screen):
         self.paused:int = 0x2
         self.current_cards = self.CHR.random_cards(5,1.0, can_repeat=False)
     
+    def UpdateUItext(self):
+        if self.paused == 0x0:
+            LifeBar.text = LGS.translate(51).format(int(self.world.player.health),int(self.world.player.maxHealth),int(LifeBar.value*100))
+            ExpBar.text = LGS.translate(52).format(self.world.player.level,int(self.world.player.experience),int(self.world.player.level*100),int(ExpBar.value*100))
+    
     def _update(self):
-        if ((pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4) or (pge.joystick.main and pge.joystick.main.getButtonByString("start"))) and self.pause_timer <= 0 and not self.paused == 0x2:
+        if pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4 or (pge.joystick.main and pge.joystick.main.getButtonByString("start")):
             self.paused = 0x0 if self.paused == 0x1 else 0x1
-            self.pause_timer = pge.TimeSys.s2f(0.32)
+            self.pause_timer = pge.TimeSys.s2f(0.3)
             
         if self.paused == 0x0: # Not Paused
             self.world.update()
             LifeBar.value = self.world.player.health / self.world.player.maxHealth
             ExpBar.value = self.world.player.experience / (self.world.player.level * 100)
-            LifeBar.text = f"Health: {int(self.world.player.health)}/{int(self.world.player.maxHealth)} ({int(LifeBar.value*100)}%)"
-            ExpBar.text = f"Level: {self.world.player.level} | Experience: {int(self.world.player.experience)}/{self.world.player.level*100} ({int(ExpBar.value*100)}%)"
+            GD.new_task(self.UpdateUItext,())
         elif self.paused == 0x1: # Paused
+            
             if ResumeButton.value and self.pause_timer <= 0:
-                self.paused = False
-                self.pause_timer = pge.TimeSys.s2f(0.32)
+                self.paused = 0x0
+                self.pause_timer = pge.TimeSys.s2f(0.3)
             elif ExitToMenuButton.value and self.pause_timer <= 0:
-                print("Exit to Menu")
                 self.exiting()
                 self.SCH.changeScreen(0x0)
-            elif ExitGame.value and self.pause_timer <= 0:
+            elif ExitGame.value and self.pause_timer*0.1 <= 0:
                 self.exiting()
                 pge.exit()
         elif self.paused == 0x2: # Leveled Up
@@ -74,19 +80,14 @@ class Game(Screen):
                 self.increase_offset.y *= -1
                 
             if pge.hasKeyPressed(pg.K_1):
-                print(f'{self.current_cards[0].cardname} was selected!')
                 self.paused = 0x0
             elif pge.hasKeyPressed(pg.K_2):
-                print(f'{self.current_cards[1].cardname} was selected!')
                 self.paused = 0x0
             elif pge.hasKeyPressed(pg.K_3):
-                print(f'{self.current_cards[2].cardname} was selected!')
                 self.paused = 0x0
             elif pge.hasKeyPressed(pg.K_4):
-                print(f'{self.current_cards[3].cardname} was selected!')
                 self.paused = 0x0
             elif pge.hasKeyPressed(pg.K_5):
-                print(f'{self.current_cards[4].cardname} was selected!')
                 self.paused = 0x0
             
         if self.pause_timer > 0: self.pause_timer -= 1
@@ -109,30 +110,35 @@ class Game(Screen):
                 x += f"{value}{cc[key]}, "
         return x[:-2]
     
+    def turnElements(self, element:Literal['Game','Pause'], state:bool):
+        if element == 'Game':
+            game_elements[0].enable = state
+            pause_elements[0].enable = not state
+        elif element == 'Pause':
+            game_elements[0].enable = not state
+            pause_elements[0].enable = state
+    
     def draw(self):
         self.world.draw()
         self.world.player.draw()
         # self.world.draw_projectiles()
         speed_measure = GAME_SPEED_MEASURE_OPTIONS[CONFIG["speed_measure"]]
-        pge.draw_text(Position((5, 15)) * RATIO, f'Speed: {round(self.world.player.register_speed[speed_measure], 2)} {speed_measure}', PS12, pge.Colors.WHITE)
-        pge.draw_text(Position((5, 30)) * RATIO, f'Projectiles: {len(self.world.projectiles)}', PS12, pge.Colors.WHITE)
-        pge.draw_text(Position((5, 45)) * RATIO, f'Offset: {self.world.offset.xy}', PS12, pge.Colors.WHITE)
+        pge.draw_text(Position((5, 15)) * RATIO, LGS.translate(53).format(round(self.world.player.register_speed[speed_measure], 2), speed_measure), PS12, pge.Colors.WHITE)
+        pge.draw_text(Position((5, 30)) * RATIO, LGS.translate(54).format(len(self.world.projectiles)), PS12, pge.Colors.WHITE)
+        pge.draw_text(Position((5, 45)) * RATIO, LGS.translate(55).format(self.world.offset.xy), PS12, pge.Colors.WHITE)
         
         pge.draw_text((GAME_CENTER_OF_SCREEN[0],15*RATIO.y), f"{self.time_fix()}", PS16, pge.Colors.WHITE,root_point="center")
 
-        pause_elements = [ResumeButton, ExitToMenuButton, ExitGame]
+        
         if self.paused == 0x1:
             pge.draw_rect(Position((5, 5)) * RATIO, Position((390, 590)) * RATIO, COLOR_DARK_BACKGROUND, 3, COLOR_LIGHT_BORDER, alpha=180)
-            pge.draw_text(Position((10, 10)) * RATIO, "MENU", PS16, pge.Colors.WHITE)
-            pge.draw_text(Position((10, 40)) * RATIO, "PAUSED", PS16, pge.Colors.WHITE)
-            for element in pause_elements:
-                element.enable = True
+            pge.draw_text(Position((10, 10)) * RATIO, LGS.translate(56), PS18, pge.Colors.WHITE)
+            GD.new_task(self.turnElements, ('Game', False))
         elif self.paused == 0x0:
-            pge.draw_text(Position((400,550))*RATIO,'Enemies Left: '+str(len(self.world.enemys)),PS16,pge.Colors.WHITE,surface=pge.screen,root_point='center')
-            for element in pause_elements:
-                element.enable = False
+            pge.draw_text(Position((400,550))*RATIO, LGS.translate(58).format(str(len(self.world.enemys))),PS16,pge.Colors.WHITE,surface=pge.screen,root_point='center')
+            GD.new_task(self.turnElements, ('Game', True))
         elif self.paused == 0x2:
-            pge.draw_text(Position((400,50+(self.content_offset.y*3)))*RATIO, f"Level Up to {self.world.player.level}!", PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')
+            pge.draw_text(Position((400,50+(self.content_offset.y*3)))*RATIO, LGS.translate(59).format(self.world.player.level), PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')
             for index, card in enumerate(self.current_cards):
                 x = 5+(160*index)
                 y = 250+(self.content_offset.y*5)

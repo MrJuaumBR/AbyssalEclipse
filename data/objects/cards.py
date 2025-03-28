@@ -56,7 +56,7 @@ class Card:
     surface_rect:pg.rect.RectType
     
     rect:pg.Rect
-    size:tuple[int,int] = (150,240)
+    size:tuple[int,int] = (150,260)
     selected:bool = False
     
     
@@ -109,7 +109,7 @@ class Card:
         lines = self.get_lines(self.description)
         y = 71
         for line in lines.values():
-            pge.draw_text(Position((5,y))*RATIO, line, PS18, pge.Colors.WHITE, surface=self.surface)
+            pge.draw_text(Position((5,y))*RATIO, line, PS14, pge.Colors.WHITE, surface=self.surface)
             y += 20
     
     def on_hover(self):
@@ -135,7 +135,7 @@ class Card:
                 lines[line_number] = current_line.strip()
                 current_line = ''
                 line_number += 1
-            elif (pg.font.Font.size(PS14, current_line + ' ' + word)[0]+10) * RATIO.x > (self.surface.get_size()[0]-50)*RATIO.x:
+            elif (pg.font.Font.size(PS14, current_line + ' ' + word)[0]) * RATIO.x > (self.surface.get_size()[0]-10)*RATIO.x:
                 lines[line_number] = current_line.strip()
                 current_line = word
                 line_number += 1
