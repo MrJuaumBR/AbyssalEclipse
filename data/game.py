@@ -13,8 +13,11 @@ ExitToMenuButton = pw.Button(pge, Position((15,115))*RATIO, PS16, LGS.translate(
 ExitGame = pw.Button(pge, Position((15,155))*RATIO, PS16, LGS.translate(50), [COLOR_REJECT, COLOR_DARK_BACKGROUND, COLOR_LIGHT_BORDER])
 
 ResumeButton.enable = False
+ResumeButton.click_time = 0.01
 ExitToMenuButton.enable = False
+ExitToMenuButton.click_time = 0.01
 ExitGame.enable = False
+ExitGame.click_time = 0.01
 
 
 pause_elements = [ResumeButton, ExitToMenuButton, ExitGame]
@@ -29,7 +32,7 @@ class Game(Screen):
     
     world:World
     
-    pause_timer:int = 0
+    pause_timer:any
     CHR:CardHandler
     current_cards:list[Card, ] = []
     def __init__(self, SCH):
@@ -43,10 +46,19 @@ class Game(Screen):
         self.widgets.append(ExitGame)
         
         self.world:World = World(GD.difficulty,self.level_up)
+        self.pause_timer = pge.delta_time
+    
+    def opened(self):
+        if GAME_MUSIC_CHANNEL0.get_sound() != GAME_MUSIC_OST1:
+            GAME_MUSIC_CHANNEL0.stop()
+            GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST1,-1)
+            GAME_MUSIC_CHANNEL0.set_volume(round(CONFIG['volume'],2))
     
     def level_up(self):
         self.paused:int = 0x2
         self.current_cards = self.CHR.random_cards(5,1.0, can_repeat=False)
+        if GAME_MUSIC_CHANNEL1.get_sound() != GAME_SFX_LEVELUP:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_LEVELUP)
     
     def UpdateUItext(self):
         if self.paused == 0x0:
@@ -54,9 +66,9 @@ class Game(Screen):
             ExpBar.text = LGS.translate(52).format(self.world.player.level,int(self.world.player.experience),int(self.world.player.level*100),int(ExpBar.value*100))
     
     def _update(self):
-        if pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4 or (pge.joystick.main and pge.joystick.main.getButtonByString("start")):
+        if ((pge.hasKeyPressed(pg.K_ESCAPE) or pge.mouse.button_4) or (pge.joystick.main and pge.joystick.main.getButtonByString("start"))) and (self.pause_timer - pge.delta_time).total_seconds() <= 1:
             self.paused = 0x0 if self.paused == 0x1 else 0x1
-            self.pause_timer = pge.TimeSys.s2f(0.3)
+            self.pause_timer = pge.delta_time
             
         if self.paused == 0x0: # Not Paused
             self.world.update()
@@ -65,13 +77,13 @@ class Game(Screen):
             GD.new_task(self.UpdateUItext,())
         elif self.paused == 0x1: # Paused
             
-            if ResumeButton.value and self.pause_timer <= 0:
+            if ResumeButton.value and (self.pause_timer - pge.delta_time).total_seconds() <= 1:
                 self.paused = 0x0
-                self.pause_timer = pge.TimeSys.s2f(0.3)
-            elif ExitToMenuButton.value and self.pause_timer <= 0:
+                self.pause_timer = pge.delta_time
+            elif ExitToMenuButton.value and (self.pause_timer - pge.delta_time).total_seconds() <= 0.3:
                 self.exiting()
                 self.SCH.changeScreen(0x0)
-            elif ExitGame.value and self.pause_timer*0.1 <= 0:
+            elif ExitGame.value and (self.pause_timer - pge.delta_time).total_seconds() <= 0.3:
                 self.exiting()
                 pge.exit()
         elif self.paused == 0x2: # Leveled Up
@@ -80,20 +92,23 @@ class Game(Screen):
                 self.increase_offset.y *= -1
                 
             if pge.hasKeyPressed(pg.K_1):
-                self.paused = 0x0
+                self.SelectCard(0)
             elif pge.hasKeyPressed(pg.K_2):
-                self.paused = 0x0
+                self.SelectCard(1)
             elif pge.hasKeyPressed(pg.K_3):
-                self.paused = 0x0
+                self.SelectCard(2)
             elif pge.hasKeyPressed(pg.K_4):
-                self.paused = 0x0
+                self.SelectCard(3)
             elif pge.hasKeyPressed(pg.K_5):
-                self.paused = 0x0
-            
-        if self.pause_timer > 0: self.pause_timer -= 1
+                self.SelectCard(4)
         
         
         return super()._update()
+    
+    def SelectCard(self, index:int):
+        self.paused = 0x0
+        if GAME_MUSIC_CHANNEL1.get_sound() != GAME_SFX_POWERUP:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_POWERUP)
     
     def time_fix(self) -> str:
         elapsed_time = self.world.elapsed_time
@@ -112,11 +127,17 @@ class Game(Screen):
     
     def turnElements(self, element:Literal['Game','Pause'], state:bool):
         if element == 'Game':
-            game_elements[0].enable = state
-            pause_elements[0].enable = not state
+            if game_elements[0].enable != state:
+                for element in game_elements:
+                    element.enable = state
+                for element in pause_elements:
+                    element.enable = not state
         elif element == 'Pause':
-            game_elements[0].enable = not state
-            pause_elements[0].enable = state
+            if pause_elements[0].enable != state:
+                for element in game_elements:
+                    element.enable = not state
+                for element in pause_elements:
+                    element.enable = state
     
     def draw(self):
         self.world.draw()
@@ -133,6 +154,7 @@ class Game(Screen):
         if self.paused == 0x1:
             pge.draw_rect(Position((5, 5)) * RATIO, Position((390, 590)) * RATIO, COLOR_DARK_BACKGROUND, 3, COLOR_LIGHT_BORDER, alpha=180)
             pge.draw_text(Position((10, 10)) * RATIO, LGS.translate(56), PS18, pge.Colors.WHITE)
+            
             GD.new_task(self.turnElements, ('Game', False))
         elif self.paused == 0x0:
             pge.draw_text(Position((400,550))*RATIO, LGS.translate(58).format(str(len(self.world.enemys))),PS16,pge.Colors.WHITE,surface=pge.screen,root_point='center')
@@ -148,3 +170,5 @@ class Game(Screen):
     def exiting(self):
         # self.world:World = World(GD.difficulty,self.level_up)
         self.__dict__ = Game(self.SCH).__dict__
+        GAME_MUSIC_CHANNEL0.stop()
+        GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST2,-1)

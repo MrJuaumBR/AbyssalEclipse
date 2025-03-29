@@ -269,7 +269,19 @@ GAME_ENEMY_SPAWN_RANGE:tuple[int,int] = (256,768)
 
 # Music
 Music = pg.mixer.music
-Music.load(f"{GAME_PATH_SOUNDS}/music.mp3")
+Music.load(f"{GAME_PATH_SOUNDS}/music2.mp3")
+GAME_MUSIC_OST = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/music.mp3")
+GAME_MUSIC_OST1 = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/music2.mp3")
+GAME_MUSIC_OST2 = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/music3.mp3")
+
+GAME_SFX_PICKUP = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/pickup.wav")
+GAME_SFX_HURT = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/hurt.wav")
+GAME_SFX_LEVELUP = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/level-up.wav")
+GAME_SFX_POWERUP = pg.mixer.Sound(f"{GAME_PATH_SOUNDS}/power-up.wav")
+
+GAME_MUSIC_CHANNEL0 = pg.mixer.Channel(0)
+GAME_MUSIC_CHANNEL1 = pg.mixer.Channel(1)
+GAME_MUSIC_CHANNEL2 = pg.mixer.Channel(2)
 
 # Colors
 
@@ -448,7 +460,10 @@ class Screen(object):
         * ...
         """
         self.SCH = SCH
+        
+    def opened(self):
         pass
+    
     def draw(self):
         """
         # Draw the screen
@@ -583,6 +598,10 @@ class ScreenHandler(object):
         self.current_screen = 0x0
         self.disableAutoUpdate()
         
+        GAME_MUSIC_CHANNEL0.set_volume(round(CONFIG['volume'],2)) # Used for music
+        GAME_MUSIC_CHANNEL1.set_volume(round(CONFIG['volume']*0.8,2)) # Used for sfx 1
+        GAME_MUSIC_CHANNEL2.set_volume(round(CONFIG['volume']*0.8,2)) # Used for sfx 2
+        
     def disableAutoUpdate(self):
         sc = self.SCREENS_RELATIONS
         for screen in sc:
@@ -626,8 +645,10 @@ class ScreenHandler(object):
             if screen_id in [0x0,]:
                 self.current_screen = screen_id
                 GD._old_cs = screen_id
+                screen.opened()
             else:
                 self.current_screen = screen_id
+                screen.opened()
         else:
             print(f"Screen {screen_id} not found")
             self.current_screen = 0x0

@@ -23,7 +23,7 @@ class Item(pg.sprite.Sprite):
     def frame(self, value:float=None) -> float:
         self._frame = value
         if self._frame >= len(self.animation):
-            self._frame = len(self.animation) - 1
+            self._frame = 0
         elif self._frame < 0:
             self._frame = 0
     def __init__(self, position:list[int,int],*groups):
@@ -50,6 +50,8 @@ class Item(pg.sprite.Sprite):
     def animate(self):
         self.frame = self.frame+(0.5*(pge.getAvgFPS()/pge.fps)*GD.fps_ratio) % len(self.animation)
         self.surface = self.animation[int(self.frame)]
+        if self.frame >= len(self.animation):
+            self.frame = 0
     
     def draw(self):
         r = pg.rect.Rect(0,0, *Position((16,16))*RATIO)
@@ -61,6 +63,8 @@ class Item(pg.sprite.Sprite):
     def collide(self):
         if self.world.player.rect.colliderect(self.rect):
             self.action()
+            if GAME_MUSIC_CHANNEL2.get_sound() != GAME_SFX_PICKUP:
+                GAME_MUSIC_CHANNEL2.play(GAME_SFX_PICKUP)
             self.kill()
         else:
             if pge.delta_time.total_seconds()-self.started > 3.5:
@@ -78,7 +82,8 @@ class ExpCrystal(Item):
     
     def action(self):
         player = self.world.player
-        self.world.player.experience += random.randint(player.level * 5, player.level * 20) * player.luck
+        needed:float = (player.level*100)-player.experience
+        player.experience += random.uniform(needed*0.01,needed*0.08) * player.luck #random.randint(player.level * 5, player.level * 20) * player.luck
     
     def setup_animation(self):
         s = pge.createSpritesheet(GAME_PATH_TEXTURES+'/items.png')

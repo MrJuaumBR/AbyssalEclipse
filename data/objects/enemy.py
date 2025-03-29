@@ -60,7 +60,7 @@ class _Enemy(pg.sprite.Sprite):
     def frame(self, value):
         self._frame = value
         if self._frame >= len(self.animation):
-            self._frame = len(self.animation) - 1
+            self._frame = 0
         elif self._frame < 0:
             self._frame = 0
     

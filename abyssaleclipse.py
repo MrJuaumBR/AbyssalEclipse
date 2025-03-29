@@ -4,8 +4,7 @@ from data.config import *
 
 
 def run():
-    Music.play(-1,0.1)
-    Music.set_volume(round(CONFIG['volume'],2))
+    SCH.changeScreen(0x0)
     while True:
         for event in pge.events:
             if event.type == pg.QUIT:

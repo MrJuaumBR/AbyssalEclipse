@@ -30,6 +30,11 @@ class Main_Menu(Screen):
         ]
     
     
+    def opened(self):
+        if GAME_MUSIC_CHANNEL0.get_sound() != GAME_MUSIC_OST2:
+            GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST2,-1,fade_ms=500)
+            GAME_MUSIC_CHANNEL0.set_volume(round(CONFIG['volume'],2))
+    
     def _update(self):
         self.title_animation[0] += (0.7 * (60/(pge.getAvgFPS() or pge.fps)))*self.title_animation[1]
         if self.title_animation[0] >= 20 or self.title_animation[0] <= 0:

@@ -485,6 +485,8 @@ class Player(pg.sprite.Sprite):
     
     def take_damage(self, amount:float):
         self.health -= amount*(1-self.resistance)
+        if GAME_MUSIC_CHANNEL1.get_sound() != GAME_SFX_HURT:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_HURT)
         
     def heal(self, amount:float):
         self.health += amount
