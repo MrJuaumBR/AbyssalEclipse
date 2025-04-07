@@ -8,10 +8,10 @@ class _Enemy(pg.sprite.Sprite):
     
     world:object
     
-    health:int = 40
-    max_health:int = 40
-    speed:float = 3.8
-    damage:float = 5.0
+    health:int = 20
+    max_health:int = 20
+    speed:float = 3.6
+    damage:float = 2.0
     attack_delay:float = 1.2
     
     blinking:bool = False
@@ -113,7 +113,7 @@ class _Enemy(pg.sprite.Sprite):
                     self.alpha = 0
                 self.surface.set_alpha(self.alpha)
             else:
-                self.world.add_item(self.position, random.choice(['ExpShard','Coin']))
+                self.world.add_item(self.position, random.choice(['ExpShard','ExpShard','ExpShard','ExpShard','ExpShard','Coin']))
                 self.kill()
                 self.dying = False
     

@@ -162,8 +162,8 @@ class GAME_WEAPON_ATTRIBUTTES_TYPE(typing.TypedDict):
     hits:int
 
 GAME_DEFAULT_WEAPON_ATTRIBUTTES:GAME_WEAPON_ATTRIBUTTES_TYPE = {
-    "damage":5.0,
-    "speed":5.0,
+    "damage":1.0,
+    "speed":1.0,
     "lifetime":1.0,
     "hits":1
 }

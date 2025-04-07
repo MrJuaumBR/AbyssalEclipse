@@ -63,8 +63,26 @@ class Options(Screen):
         
         VolumeSlider._on_change = self.VolumeSliderChange
     def VolumeSliderChange(self,_):
-        Music.set_volume(round(VolumeSlider.value,2))
-        
+        GAME_MUSIC_CHANNEL0.set_volume(round(VolumeSlider.value,2))
+        GAME_MUSIC_CHANNEL1.set_volume(round(VolumeSlider.value*0.8,2))
+        GAME_MUSIC_CHANNEL2.set_volume(round(VolumeSlider.value*0.8,2))
+    def update_cfg(self):
+        self.cfg['window_resolution'] = ScreenResSelect.value
+        self.cfg['fullscreen'] = FullScreenCheck.value
+        self.cfg['fps'] = FPSLimitSelect.value
+        self.cfg['dynamic_fps'] = DynamicFPSCheck.value
+        self.cfg['show_fps'] = ShowFPSCheck.value
+        self.cfg['dynamic_mouse_wheel'] = DynMouseWhlCheck.value
+        self.cfg['vsync'] = VsyncCheck.value
+        self.cfg['debug'] = DebugCheck.value
+        self.cfg['speed_measure'] = MeasureSpeedSelect.value
+        self.cfg['volume'] = VolumeSlider.value
+        self.cfg['mouse_trail'] = TrailCheck.value
+        self.cfg['trail_color'] = TrailColor.current_text
+        self.cfg['floor_color'] = FloorColorDropwdown.current_text
+        self.cfg['lang'] = GAME_LANGUAGE_OPTIONS[LanguageDropdown.current_text]
+    
+    
     def draw(self):
         # Normal Options
         pge.draw_rect(Position((10,90))*RATIO,Position((380,335))*RATIO,COLOR_DARK_BACKGROUND,2,COLOR_LIGHT_BORDER,alpha=230)
@@ -74,6 +92,14 @@ class Options(Screen):
         # Visual Options
         pge.draw_rect(Position((10,450))*RATIO,Position((300,120))*RATIO,COLOR_DARK_BACKGROUND,2,COLOR_LIGHT_BORDER,alpha=230)
         pge.draw_text(Position((15,455))*RATIO,LGS.translate(28), PS16,pge.Colors.WHITE)
+        
+        
+        
+            
+        # Draw Main Title
+        pge.draw_text(Position((20,20))*RATIO,LGS.translate(45),RBG24, (125,90,115), alpha=80)
+        pge.draw_text(Position((10,10))*RATIO,LGS.translate(45),RBG26, (255,255,255))
+    def _update(self):
         if self.frames_runned == 0:
             self.frames_runned = 1
             self.cfg = CONFIG
@@ -92,29 +118,12 @@ class Options(Screen):
             TrailColor.current_text = self.cfg["trail_color"]
             FloorColorDropwdown.current_text = self.cfg["floor_color"]
             LanguageDropdown.current_text = GAME_LANGUAGE_OPTIONS.index(self.cfg['lang'])
+        GD.new_task(self.update_cfg, ())
+        
         if BackButtonOptions.value:
             self.SCH.changeScreen(0x0)
             self.exiting()
-        
-        self.cfg['window_resolution'] = ScreenResSelect.value
-        self.cfg['fullscreen'] = FullScreenCheck.value
-        self.cfg['fps'] = FPSLimitSelect.value
-        self.cfg['dynamic_fps'] = DynamicFPSCheck.value
-        self.cfg['show_fps'] = ShowFPSCheck.value
-        self.cfg['dynamic_mouse_wheel'] = DynMouseWhlCheck.value
-        self.cfg['vsync'] = VsyncCheck.value
-        self.cfg['debug'] = DebugCheck.value
-        self.cfg['speed_measure'] = MeasureSpeedSelect.value
-        self.cfg['volume'] = VolumeSlider.value
-        self.cfg['mouse_trail'] = TrailCheck.value
-        self.cfg['trail_color'] = TrailColor.current_text
-        self.cfg['floor_color'] = FloorColorDropwdown.current_text
-        self.cfg['lang'] = GAME_LANGUAGE_OPTIONS[LanguageDropdown.current_text]
-            
-        # Draw Main Title
-        pge.draw_text(Position((20,20))*RATIO,LGS.translate(45),RBG24, (125,90,115), alpha=80)
-        pge.draw_text(Position((10,10))*RATIO,LGS.translate(45),RBG26, (255,255,255))
-        
+        return super()._update()
     def exiting(self):
         CONFIG['fullscreen'] = self.cfg['fullscreen']
         CONFIG['dynamic_fps'] = self.cfg['dynamic_fps']

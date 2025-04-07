@@ -69,7 +69,7 @@ class Item(pg.sprite.Sprite):
         else:
             if pge.delta_time.total_seconds()-self.started > 3.5:
                 direction = (self.world.player.position - self.position)
-                self.position += direction.normalize() * (self.world.player.speed*1.1)
+                self.position += direction.normalize() * (self.world.player.speed*1.25)
             
     
     def update(self):
@@ -82,8 +82,8 @@ class ExpCrystal(Item):
     
     def action(self):
         player = self.world.player
-        needed:float = (player.level*100)-player.experience
-        player.experience += random.uniform(needed*0.01,needed*0.08) * player.luck #random.randint(player.level * 5, player.level * 20) * player.luck
+        needed:float = (player.level*100)
+        player.experience += needed*(random.uniform(0.02,0.1) * player.luck) #random.randint(player.level * 5, player.level * 20) * player.luck
     
     def setup_animation(self):
         s = pge.createSpritesheet(GAME_PATH_TEXTURES+'/items.png')

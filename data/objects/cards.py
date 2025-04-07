@@ -51,6 +51,7 @@ class Card:
     description:str
     rarity:str
     icon:pg.SurfaceType
+    value:float
     
     surface:pg.SurfaceType
     surface_rect:pg.rect.RectType
@@ -63,13 +64,10 @@ class Card:
     
     tip:pw.Tip
     hover:bool = False
-    
-    CPS14 = pge.createFont(FONT_PIXELIFYSANS, 15)
-    CPS18 = pge.createFont(FONT_PIXELIFYSANS, 17)
-    CPS22 = pge.createFont(FONT_PIXELIFYSANS, 20)
+
     
     widgets = []
-    def __init__(self, cardname, description, rarity, icon_rect:tuple[int,int,int,int]=None):
+    def __init__(self, cardname, description, rarity, icon_rect:tuple[int,int,int,int]=None, value:float=1.0):
         self.cardname = cardname
         self.description = description
         self.rarity = rarity
@@ -88,6 +86,8 @@ class Card:
         self.set_widgets()
         
         self.rect = self.surface.get_rect()
+        
+        self.value = value
         
     def set_widgets(self):
         self.surface.fill(COLOR_DARK_ALMOND.rgb)
@@ -162,99 +162,177 @@ class Card:
     # Movement Speed
 class MovSpeed1(Card):
     def __init__(self):
-        super().__init__("Movement Speed", "This card gives you 2.5% more movement speed.", "common",(0,0,32,32))
-
-class MovSpeed2(Card):
-    def __init__(self):
-        super().__init__("Movement Speed", "This card gives you 7% more movement speed.", "uncommon",(0,0,32,32))
+        super().__init__("Movement Speed", "This card gives you 1% more movement speed.", "common",(0,0,32,32)) # Base: 2.5%
         
-class MovSpeed3(Card):
-    def __init__(self):
-        super().__init__("Movement Speed", "This card gives you 16% more movement speed.", "rare",(0,0,32,32))
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.speed += player.speed * (0.01*self.value)
+        except Exception as e:
+            print(f'Error in action: {e}')
 
-class MovSpeed4(Card):
+class MovSpeed2(MovSpeed1):
     def __init__(self):
-        super().__init__("Movement Speed", "This card gives you 28% more movement speed.", "epic",(0,0,32,32))
+        super().__init__("Movement Speed", "This card gives you 3.2% more movement speed.", "uncommon",(0,0,32,32),value=3.2) # To calculate the value get the initial value and get the % of difference
+        # Base: 1%
+        # This: 3.2%
+        # value = Base/This
+        
+class MovSpeed3(MovSpeed2):
+    def __init__(self):
+        super().__init__("Movement Speed", "This card gives you 6.25% more movement speed.", "rare",(0,0,32,32), value=6.25)
+
+class MovSpeed4(MovSpeed3):
+    def __init__(self):
+        super().__init__("Movement Speed", "This card gives you 10% more movement speed.", "epic",(0,0,32,32), value=10.0)
     
     # Attack Damage
 class AttDmg1(Card):
     def __init__(self):
         super().__init__("Attack Damage", "This card gives you 1% more attack damage.", "common",(32,0,32,32))
+        
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.projectile_attr['damage'] += player.projectile_attr['damage'] * (0.01*self.value)
+        except Exception as e:
+            print(f'Error in action: {e}')
 
 class AttDmg2(Card):
     def __init__(self):
-        super().__init__("Attack Damage", "This card gives you 2% more attack damage.", "uncommon",(32,0,32,32))
+        super().__init__("Attack Damage", "This card gives you 2% more attack damage.", "uncommon",(32,0,32,32),value=2.0)
         
 class AttDmg3(Card):
     def __init__(self):
-        super().__init__("Attack Damage", "This card gives you 4% more attack damage.", "rare",(32,0,32,32))
+        super().__init__("Attack Damage", "This card gives you 4% more attack damage.", "rare",(32,0,32,32),value=4.0)
 
 class AttDmg4(Card):
     def __init__(self):
-        super().__init__("Attack Damage", "This card gives you 8% more attack damage.", "epic",(32,0,32,32))
+        super().__init__("Attack Damage", "This card gives you 8% more attack damage.", "epic",(32,0,32,32),value=8.0)
         
     # Reload Speed
 class RelSpd1(Card):
     def __init__(self):
         super().__init__("Reload Speed", "This card gives you 0.5% minus reload speed.", "common",(64,0,32,32))
         
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.reload_time -= 0.005 * self.value
+        except Exception as e:
+            print(f'Error in action: {e}')
+            
+        
 class RelSpd2(Card):
     def __init__(self):
-        super().__init__("Reload Speed", "This card gives you 1% minus reload speed.", "uncommon",(64,0,32,32))
+        super().__init__("Reload Speed", "This card gives you 1% minus reload speed.", "uncommon",(64,0,32,32), value=2)
         
 class RelSpd3(Card):
     def __init__(self):
-        super().__init__("Reload Speed", "This card gives you 2% minus reload speed.", "rare",(64,0,32,32))
+        super().__init__("Reload Speed", "This card gives you 2% minus reload speed.", "rare",(64,0,32,32), value=4)
         
 class RelSpd4(Card):
     def __init__(self):
-        super().__init__("Reload Speed", "This card gives you 4% minus reload speed.", "epic",(64,0,32,32))
+        super().__init__("Reload Speed", "This card gives you 4% minus reload speed.", "epic",(64,0,32,32), value=8)
         
 class RelSpd5(Card):
     def __init__(self):
-        super().__init__("Reload Speed", "This card gives you 25% minus reload speed.\n\n Are you a speedrunner?!", "legendary",(64,0,32,32))
+        super().__init__("Reload Speed", "This card gives you 12% minus reload speed.\n\n Are you a speedrunner?!", "legendary",(64,0,32,32), value=24)
 
     # Health
 class Health1(Card):
     def __init__(self):
         super().__init__("Health", "This card gives you 10+ more health.", "common",(96,0,32,32))
+        
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            mh = player.maxHealth
+            player.maxHealth = mh + (10*self.value)
+            player.health *= player.maxHealth/mh
+        except Exception as e:
+            print(f'Error in action: {e}')
 
-class Health2(Card):
+class Health2(Health1):
     def __init__(self):
-        super().__init__("Health", "This card gives you 20+ more health.", "uncommon",(96,0,32,32))
+        super().__init__("Health", "This card gives you 20+ more health.", "uncommon",(96,0,32,32),value=2.0)
         
-class Health3(Card):
+class Health3(Health2):
     def __init__(self):
-        super().__init__("Health", "This card gives you 40+ more health.", "rare",(96,0,32,32))        
+        super().__init__("Health", "This card gives you 40+ more health.", "rare",(96,0,32,32),value=4.0)        
         
-class Health4(Card):
+class Health4(Health3):
     def __init__(self):
-        super().__init__("Health", "This card gives you 80+ more health.", "epic",(96,0,32,32))
+        super().__init__("Health", "This card gives you 80+ more health.", "epic",(96,0,32,32),value=8.0)
         
-class Health5(Card):
+class Health5(Health4):
     def __init__(self):
-        super().__init__("Health", "This card gives you 250+ more health.\n\n Yooo! a bodybuilder damn.", "legendary",(96,0,32,32))
+        super().__init__("Health", "This card gives you 250+ more health.\n\n Yooo! a bodybuilder damn.", "legendary",(96,0,32,32),value=25.0)
+
+    # Perfuration
+class Perf1(Card):
+    def __init__(self):
+        super().__init__("Perfuration", "This card make your projectile hit +1 target.", "rare",(160,32,32,32))
         
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.projectile_attr += 1 * int(self.value)
+        except Exception as e:
+            print(f'Error in action: {e}')
+            
+class Perf2(Perf1):
+    def __init__(self):
+        super().__init__("Perfuration", "This card make your projectile hit +2 target.", "epic",(160,32,32,32),value=2.0)
+        
+    # Projectile Speed
+class ProjSpd1(Card):
+    def __init__(self):
+        super().__init__("Projectile Speed", "This card gives you 5% more projectile speed.", "common",(192,32,32,32))
+        
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.projectile_attr['speed'] += player.projectile_attr['speed'] * (0.05*self.value)
+        except Exception as e:
+            print(f'Error in action: {e}')
+            
+class ProjSpd2(ProjSpd1):
+    def __init__(self):
+        super().__init__("Projectile Speed", "This card gives you 10% more projectile speed.", "uncommon",(192,32,32,32),value=2.0)
+        
+class ProjSpd3(ProjSpd2):
+    def __init__(self):
+        super().__init__("Projectile Speed", "This card gives you 20% more projectile speed.", "rare",(192,32,32,32),value=4.0)
+
+
     # Luck
 class Luck1(Card):
     def __init__(self):    
         super().__init__("Luck", "This card gives you 2% more luck.", "common",(128,0,32,32))
+        
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            player.luck += player.luck * (0.02*self.value)
+        except Exception as e:
+            print(f'Error in action: {e}')
 
-class Luck2(Card):
+class Luck2(Luck1):
     def __init__(self):
-        super().__init__("Luck", "This card gives you 4% more luck.", "uncommon",(128,0,32,32))
+        super().__init__("Luck", "This card gives you 4% more luck.", "uncommon",(128,0,32,32), value=2.0)
         
-class Luck3(Card):
+class Luck3(Luck2):
     def __init__(self):
-        super().__init__("Luck", "This card gives you 8% more luck.", "rare",(128,0,32,32))
+        super().__init__("Luck", "This card gives you 8% more luck.", "rare",(128,0,32,32), value=4.0)
         
-class Luck4(Card):
+class Luck4(Luck3):
     def __init__(self):
-        super().__init__("Luck", "This card gives you 16% more luck.", "epic",(128,0,32,32))
+        super().__init__("Luck", "This card gives you 16% more luck.", "epic",(128,0,32,32), value=8.0)
         
-class Luck5(Card):
+class Luck5(Luck4):
     def __init__(self):
-        super().__init__("Luck", "This card gives you 50% more luck.\n\n Miss Murphy? Where are you?", "legendary",(128,0,32,32))
+        super().__init__("Luck", "This card gives you 50% more luck.\n\n Miss Murphy? Where are you?", "legendary",(128,0,32,32), value=25.0)
 
 # Abilities
 class Shield(Card):
@@ -271,7 +349,7 @@ class MermaidTear(Card):
 
 class Nuketown(Card):
     def __init__(self):
-        super().__init__("Nuke Town", "This card gives you a nuke. That happens every 30 seconds.\n\n We are not in CoD.", "mythic",(160,0,32,32))
+        super().__init__("Nuke Town", "This card gives you a nuke. That happens every 30 seconds.\n\n We are not in Fallout.", "mythic",(160,0,32,32))
         
 class Repeater(Card):
     def __init__(self):
@@ -296,6 +374,28 @@ class Assasin(Card):
 class Statsless(Card):
     def __init__(self):
         super().__init__("Statsless", "+10% in all stats\n\n Huh? Looks like you aren't mastering nothing? ", "mythic",(352,0,32,32))
+        
+    def action(self, attributes:dict):
+        try:
+            player = attributes['player']
+            stats:list[str,] = [
+                'speed',
+                'luck',
+                'health',
+                'maxHealth',
+            ]
+            for stat in stats:
+                if stat in ['reload_time']:
+                    player.__dict__[stat] -= player.__dict__[stat] * 0.1
+                elif stat in ['resistance']:
+                    if player.__dict__[stat] > 0:
+                        player.__dict__[stat] += player.__dict__[stat] * 0.1
+                    else:
+                        player.__dict__[stat] = 1
+                else:
+                    player.__dict__[stat] *= 1.1
+        except Exception as e:
+            print(f'Error in action: {e}')
 
 class MasterOfGravity(Card):
     def __init__(self):

@@ -107,6 +107,7 @@ class Game(Screen):
     
     def SelectCard(self, index:int):
         self.paused = 0x0
+        GD.new_task(self.world.player.cardInsert, (self.current_cards[index],))
         if GAME_MUSIC_CHANNEL1.get_sound() != GAME_SFX_POWERUP:
             GAME_MUSIC_CHANNEL1.play(GAME_SFX_POWERUP)
     
@@ -154,10 +155,11 @@ class Game(Screen):
         if self.paused == 0x1:
             pge.draw_rect(Position((5, 5)) * RATIO, Position((390, 590)) * RATIO, COLOR_DARK_BACKGROUND, 3, COLOR_LIGHT_BORDER, alpha=180)
             pge.draw_text(Position((10, 10)) * RATIO, LGS.translate(56), PS18, pge.Colors.WHITE)
-            
             GD.new_task(self.turnElements, ('Game', False))
         elif self.paused == 0x0:
             pge.draw_text(Position((400,550))*RATIO, LGS.translate(58).format(str(len(self.world.enemys))),PS16,pge.Colors.WHITE,surface=pge.screen,root_point='center')
+            GAME_SCREEN.blit(self.world.player.cards_surface, Position((5, 530-self.world.player.cards_surface.get_height())) * RATIO)
+            
             GD.new_task(self.turnElements, ('Game', True))
         elif self.paused == 0x2:
             pge.draw_text(Position((400,50+(self.content_offset.y*3)))*RATIO, LGS.translate(59).format(self.world.player.level), PS32, pge.Colors.WHITE, surface=pge.screen, root_point='center')

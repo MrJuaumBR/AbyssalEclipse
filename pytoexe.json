@@ -22,6 +22,10 @@
    "value": "C:/Users/MrPot/OneDrive/Documentos/Projects/AbyssalEclipse/aseprite/icon.ico"
   },
   {
+   "optionDest": "name",
+   "value": "Abyssal Eclipse"
+  },
+  {
    "optionDest": "clean_build",
    "value": false
   },
@@ -55,7 +59,7 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/MrPot/OneDrive/Documentos/Projects/AbyssalEclipse/data;data/"
+   "value": "C:/Users/MrPot/OneDrive/Documentos/Projects/AbyssalEclipse/data;./data/"
   }
  ],
  "nonPyinstallerOptions": {

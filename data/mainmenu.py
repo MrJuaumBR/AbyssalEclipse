@@ -33,6 +33,7 @@ class Main_Menu(Screen):
     def opened(self):
         if GAME_MUSIC_CHANNEL0.get_sound() != GAME_MUSIC_OST2:
             GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST2,-1,fade_ms=500)
+            print("Volume: ", round(CONFIG['volume'],2))
             GAME_MUSIC_CHANNEL0.set_volume(round(CONFIG['volume'],2))
     
     def _update(self):

@@ -1,6 +1,7 @@
 from ..config import *
 
 from pygame.locals import *
+from .cards import Card
 
 Player_Frames_Positions = {
     'top':[(16,525),(80,525),(144,525),(208,525),(272,525), (336,525), (400,525), (464,525)], # 8 Frames
@@ -23,13 +24,13 @@ class Projectile(pg.sprite.Sprite):
     player:object
     surface:pg.SurfaceType
     
-    damage:float = 100.0
+    damage:float = 15.0
     start_pos:pg.math.Vector2 = pg.math.Vector2(0,0)
     mouse_pos:pg.math.Vector2 = pg.math.Vector2(0,0)
     position:pg.math.Vector2 = pg.math.Vector2(0,0)
     rect:pg.Rect = pg.Rect(0,0,*(Position((16,16))*RATIO))
     start_time:datetime.timedelta = None
-    lifetime:float = 10.0
+    lifetime:float = 2.0
     speed:float = 6.5
     hits:int = 1
     
@@ -90,9 +91,11 @@ class Projectile(pg.sprite.Sprite):
         ss = pge.createSpritesheet(GAME_PATH_TEXTURES+'/hatchet.png')
         
         # Set the correct attributes of the weapon based on the given attributes
-        for key in attributes.keys():
-            if key in self.__dict__.keys():
-                self.__dict__[key] = attributes[key]
+        self.damage *= attributes['damage']
+        self.speed *= attributes['speed']
+        self.lifetime *= attributes['lifetime']
+        self.hits = attributes['hits']
+        
                 
         # Add the sprites to the animation frames
         for frame in Weapon_Frames_Positions:
@@ -138,7 +141,7 @@ class Projectile(pg.sprite.Sprite):
                 if self.hits > 0: # This projectile has hits left?
                     self.hits -= 1 # Remove a hit
                     if enemy.health > 0: # Is the enemy alive?
-                        enemy.take_damage(self.damage)
+                        enemy.take_damage(self.damage*random.uniform(0.95,1.05))
                     
         if self.hits <= 0: # This projectile has no hits left?
             self.kill()
@@ -167,7 +170,7 @@ class Projectile(pg.sprite.Sprite):
         # Update the center of the rect to the new position of the weapon
         self.rect.center = self.position.xy
         
-        self.detect_collision()
+        GD.new_task(self.detect_collision, ())
 
 class Player(pg.sprite.Sprite):
     type:str = 'player'
@@ -176,8 +179,8 @@ class Player(pg.sprite.Sprite):
     surface:pg.SurfaceType
     rect:pg.rect.RectType
     
-    maxHealth:float=100.0
-    _health:float=100.0
+    maxHealth:float=200.0
+    _health:float=200.0
     _level:int = 1
     _experience:float = 0.0
     resistance:float = 0.0
@@ -211,6 +214,22 @@ class Player(pg.sprite.Sprite):
     state:Literal['top','left','right','bottom'] = 'bottom'
     is_idle:bool = True
     _frame:int = 0
+    _cards:list[Card,] = []
+    cards_dict:dict = {}
+    cards_surface:pg.SurfaceType = pg.Surface((1,1),pg.SRCALPHA)
+    
+    projectile_attr:GAME_WEAPON_ATTRIBUTTES_TYPE = GAME_DEFAULT_WEAPON_ATTRIBUTTES
+    @property
+    def cards(self) -> list[Card,]:
+        return self._cards
+    
+    @cards.setter
+
+    def cards(self, value:list[Card,]):
+
+        
+        self._cards = value
+    
     @property
     def frame(self, value:int=None) -> int:
         if value is not None:
@@ -307,10 +326,11 @@ class Player(pg.sprite.Sprite):
 
         :return: None
         """
-        if pge.mouse.left and pge.delta_time.total_seconds()-self.last_reload_time > self.reload_time:
+        if pge.mouse.left and pge.delta_time.total_seconds()-self.last_reload_time > (1.5*self.reload_time):
             # get the center of the screen
             # add the bullet to the world
-            self.world.add_projectile(Projectile(self, center_of_screen=GAME_CENTER_OF_SCREEN))
+            
+            self.world.add_projectile(Projectile(self, self.projectile_attr,center_of_screen=GAME_CENTER_OF_SCREEN))
             # update the last reload time
             self.last_reload_time = pge.delta_time.total_seconds()
         
@@ -338,6 +358,43 @@ class Player(pg.sprite.Sprite):
         if value > self._level:
             self._level = value
             self.world.level_up_function()
+            
+    def cardInsert(self, card:Card):
+        try:
+            card.action({'player':self})
+        except: pass
+        self.cards.append(card)
+        draw_order:list = []
+        i_size = 30*RATIO.med
+        if card.cardname in list(self.cards_dict.keys()):
+            self.cards_dict[card.cardname]['quantity'] += 1
+        else:
+            self.cards_dict[card.cardname] = {
+                'icon':card.icon,
+                'quantity':1
+            }
+        for cardname,card in self.cards_dict.items():   
+            draw_order.append({
+                'name':cardname,
+                'quantity':card['quantity'],
+                'icon':pg.transform.scale(card['icon'],(i_size,i_size))
+            })
+        # self.cards_surface = pg.Surface(Position((len(draw_order)/(pge.screen_size[0]/2)*52,len(draw_order)%(pge.screen_size[0]/2))*52))*RATIO,pg.SRCALPHA)
+        self.cards_surface = pg.Surface(Position((
+            (len(draw_order)*(i_size+6)),
+            max((len(draw_order)/((pge.screen_size[0]/2)%(i_size+6))), (i_size+6))
+        ))*RATIO,pg.SRCALPHA)
+        self.cards_surface.fill((0,0,0,120))
+        x,y = 0,0
+        for card in sorted(draw_order,key=lambda xx: xx['quantity'], reverse=True):
+            self.cards_surface.blit(card['icon'],Position((x,y))*RATIO)
+            pge.draw_text(Position((x+30,y+30))*RATIO,str(card['quantity']),PS14,pge.Colors.WHITE,surface=self.cards_surface)
+            pge.draw_text(Position((x+2,y+2))*RATIO,str(card['name'])[:10],PS14,pge.Colors.WHITE,surface=self.cards_surface)
+            x += i_size+6
+            if x >= pge.screen_size[0]/2:
+                x = 0
+                y += i_size+6
+                    
     
     def input(self):
         """
