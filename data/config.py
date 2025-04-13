@@ -674,6 +674,7 @@ class ScreenHandler(object):
             if not self.screen.disable_widget:
                 pge.draw_widgets(self.screen.widgets)
             
+        Color = pge.Colors.WHITE
         if CONFIG['show_fps']:
             Critical:bool = False
             FPS = int(pge.getAvgFPS())
