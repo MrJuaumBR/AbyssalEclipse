@@ -1,5 +1,5 @@
 # Imports
-import pygameengine, os, random, datetime, JPyDB, typing, threading, sys, math, json
+import pygameengine, os, random, datetime, JPyDB, typing, threading, sys, math, json, traceback
 from pygameengine import pg
 import pygameengine.widgets as pw
 from pygameengine.objects import spritesheet
@@ -174,6 +174,7 @@ CONFIG:GAME_DEFAULT_CFG_TYPE = GAME_DEFAULT_CFG
 
 # Game Engine
 pge = pygameengine.PyGameEngine()
+pge.extra_process = True
 CURRENT_WINDOW_SIZE = pg.display.Info()
 
 
@@ -226,13 +227,14 @@ def BackgroundThread():
     c = pg.time.Clock()
     print(f'Thread started pid: ({os.getpid()})')
     while pge.is_running:
+        print
         for (task, args) in GD.taskquery:
             if callable(task):
                 try:
                     task(*args)
                     GD.taskquery.remove((task, args))
                 except Exception as e:
-                    print(f'Error in thread: {e}')
+                    print(f'\n!!! Error in thread: {e}\nTask: {task}, Args: {args}\n')
         c.tick(int(GD.fps-1))
 
 _BackgroundThread = threading.Thread(target=BackgroundThread,name='BackgroundThread')
@@ -611,8 +613,11 @@ class ScreenHandler(object):
     
     def updateWidgets(self, screen:Screen):
         for wd in screen.widgets:
-            wd:pw.Widget
-            wd.update()
+            try:
+                wd:pw.Widget
+                wd.update()
+            except Exception as e:
+                print(f'Error in updateWidgets: {e}\nWidget: {wd}')
     
     @property
     def current_screen(self):
@@ -666,7 +671,8 @@ class ScreenHandler(object):
         if self.screen != None:
             self.screen._update()
             self.screen.draw()
-            if not self.screen.disable_widget: pge.draw_widgets(self.screen.widgets)
+            if not self.screen.disable_widget:
+                pge.draw_widgets(self.screen.widgets)
             
         if CONFIG['show_fps']:
             Critical:bool = False
