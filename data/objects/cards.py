@@ -60,7 +60,8 @@ class Card:
     size:tuple[int,int] = (150,260)
     selected:bool = False
     
-    
+    looped_action:bool = False
+    one_pick:bool = False
     
     tip:pw.Tip
     hover:bool = False
@@ -119,7 +120,7 @@ class Card:
     def on_select(self):
         pass
     
-    def effect(self, player):
+    def action(self, attributes:dict):
         pass
     
     def get_lines(self,text:str) -> dict:
@@ -336,38 +337,93 @@ class Luck5(Luck4):
 
 # Abilities
 class Shield(Card):
+    one_pick:bool = True
+    
+    total_health:int = 0
+    recover_time:int = 0
+    
+    looped_action:bool = True
+    setuped:bool = False
     def __init__(self):
         super().__init__("Shield", "shield with the ability to negate damage of 20% of your HP, after being destroyed it recovers in 10s.\n\n Scaredy cat!", "uncommon",(128,32,32,32))
+        
+    def action(self, attributes):
+        player = attributes['player']
+        if not self.setuped:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_SHIELD_ON)
+            self.total_health = player.maxHealth * 0.2
+            self.setuped = True
+            
+        if player.health < player.maxHealth and self.total_health > 0:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_SHIELD_OFF)
+            try:
+                player.health += self.total_health
+            except Exception as e:
+                print(f'Error in action: {e}')
+            self.total_health = 0
+            self.recover_time = pge.delta_time
+            
+        if self.total_health <= 0 and self.recover_time.total_seconds() + 1 < pge.delta_time.total_seconds():
+            self.setuped = False
+            
+            
+        
+        
 
 class GrownManTear(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Grown Man Tear", "Negates all damage for 5s after losing 15% health with a 30s cooldown.\n\n Men don't cry, but when necessary, the suitcase is already out.","legendary",(64,32,32,32))
 
 class MermaidTear(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Mermaid Tear", "When your health is below 60%, your regeneration is increased by 15%.\n\n You made a mermaid cry...","legendary",(96,32,32,32))
 
 class Nuketown(Card):
+    looped_action = True
+    one_pick:bool = True
+    # Individual Variables
+    time_to_next_nuke = 30
+    last_nuke = 0
     def __init__(self):
         super().__init__("Nuke Town", "This card gives you a nuke. That happens every 30 seconds.\n\n We are not in Fallout.", "mythic",(160,0,32,32))
+        self.last_nuke = pge.delta_time
+    
+    def nuke(self, world:object):
+        for enemy in world.enemys:
+            if enemy.health > 0:
+                enemy.health -= random.uniform(0.8,0.95) * enemy.health
+    
+    def action(self, attributes:dict):
+        player= attributes['player']
+        world= attributes['world']
+        if pge.delta_time.total_seconds() - self.last_nuke.total_seconds() > self.time_to_next_nuke:
+            GAME_MUSIC_CHANNEL1.play(GAME_SFX_NUKE)
+            GD.new_task(self.nuke, (world,))
+            self.last_nuke = pge.delta_time
         
 class Repeater(Card):
     def __init__(self):
         super().__init__("Repeater", "This card makes you shoot +1 shoot per reload.\n\n That's a lot of shots damn it.", "mythic",(192,0,32,32))
         
 class Berserker(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Berserker", "every 10 points of health lost is equal to 1% more damage.(Limit is 50% and ends after 10 seconds)\nYou're a warrior aren't you?", "mythic",(224,0,32,32))
 
 class Vampire(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Vampire", "every 10% of damage given heals 1% of health.\n\n Serious? Do you lack creativity?", "mythic",(256,0,32,32))
         
 class Ninja(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Ninja", "Every 5 points of health lost is equal to 1% more movement speed.\n\n You're a ninja aren't you?", "mythic",(288,0,32,32))
         
 class Assasin(Card):
+    one_pick:bool = True
     def __init__(self):
         super().__init__("Assasin", "Every 5 points of health lost is equal to 1% more attack speed.\n\n You're going to join the vampire, aren't you?", "mythic",(320,0,32,32))
         
@@ -435,21 +491,34 @@ class CardHandler:
                 rarities.append(r)
         return random.choice(rarities)
     
-    def only_cards_of_rarity(self, rarity):
-        return [c for c in self.cards if c.rarity == rarity]
+    def only_cards_of_rarity(self, rarity, exclusion:list[Card,]=[]):
+        exclusion_names:list[str,] = [str(n.cardname) for n in exclusion]
+        cards:list[Card,] = []
+        for c in self.cards:
+            if c.rarity != rarity:
+                if c.one_pick:
+                    if not c.cardname in exclusion_names:
+                        cards.append(c)
+                    
+                else:
+                    cards.append(c)
+                
+        return cards
     
-    def random_card(self, luck:float=1.0) -> Card:
-        cards = self.only_cards_of_rarity(self.random_rarity(luck=luck))
+    def random_card(self, luck:float=1.0, exclusion:list[Card,]=[]) -> Card:
+        cards = self.only_cards_of_rarity(self.random_rarity(luck=luck),exclusion)
+        
         if len(cards) == 0: return self.random_card()
         return random.choice(cards)
         
-    def random_cards(self, times:int=3, luck:float=1.0, can_repeat:bool=False) -> list[Card,]:
+    def random_cards(self, times:int=3, luck:float=1.0, can_repeat:bool=False, already_chosen:list[Card,]=[]) -> list[Card,]:
         x = []
+        print(already_chosen)
         for i in range(times):
             card:Card = self.random_card(luck=luck)
             if not can_repeat:
-                while card in x:
-                    card = self.random_card(luck=luck)
+                while (card in x):
+                    card = self.random_card(luck=luck,exclusion=already_chosen)
             x.append(card)
         return x
                        

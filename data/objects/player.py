@@ -279,7 +279,12 @@ class Player(pg.sprite.Sprite):
         self.setup_animations() # sets up the animations for the player
         
         self.rect = self.surface.get_rect()
-        
+    
+    def do_cards(self) -> None:
+        for card in self.cards:
+            if card.looped_action:
+                card.action({'player':self, 'world':self.world})
+    
     def setup_animations(self) -> None:
         """
         Sets up the animations for the player.
@@ -361,7 +366,8 @@ class Player(pg.sprite.Sprite):
             
     def cardInsert(self, card:Card):
         try:
-            card.action({'player':self})
+            if not card.looped_action:
+                card.action({'player':self})
         except: pass
         self.cards.append(card)
         draw_order:list = []
@@ -561,6 +567,7 @@ class Player(pg.sprite.Sprite):
         then call the animation update function to update the player's animation,
         and finally reset the player's movement vector to (0, 0).
         """
+        self.do_cards()
         self.input()
         self.animation_update()
         self.life_manager()

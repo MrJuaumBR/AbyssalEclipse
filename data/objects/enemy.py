@@ -8,7 +8,7 @@ class _Enemy(pg.sprite.Sprite):
     
     world:object
     
-    health:int = 20
+    _health:int = 20
     max_health:int = 20
     speed:float = 3.6
     damage:float = 2.0
@@ -30,6 +30,17 @@ class _Enemy(pg.sprite.Sprite):
     
     started:pygameengine.timedelta = None
     time_until_move:float = 0
+    @property
+    def health(self, value:int) -> int:
+        self._health = value
+    
+    @health.setter
+    def health(self, value:int) -> int:
+        self._health = value
+        if self._health > self.max_health:
+            self._health = self.max_health
+        elif self._health < 0:
+            self._health = 0
     def __init__(self, position:list[int,int],level:int=1,*groups):
         super().__init__(*groups)
         self.started = pge.delta_time.total_seconds()

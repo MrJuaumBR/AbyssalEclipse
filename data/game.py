@@ -55,8 +55,9 @@ class Game(Screen):
             GAME_MUSIC_CHANNEL0.set_volume(round(CONFIG['volume'],2))
     
     def level_up(self):
+        
         self.paused:int = 0x2
-        self.current_cards = self.CHR.random_cards(5,1.0, can_repeat=False)
+        self.current_cards = self.CHR.random_cards(5,1.0, can_repeat=False, already_chosen=self.world.player.cards)
         if GAME_MUSIC_CHANNEL1.get_sound() != GAME_SFX_LEVELUP:
             GAME_MUSIC_CHANNEL1.play(GAME_SFX_LEVELUP)
     
@@ -171,6 +172,14 @@ class Game(Screen):
     
     def exiting(self):
         # self.world:World = World(GD.difficulty,self.level_up)
-        self.__dict__ = Game(self.SCH).__dict__
-        GAME_MUSIC_CHANNEL0.stop()
-        GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST2,-1)
+        if self.SCH.current_screen == self.id:
+            try:
+                ldb:dict = db.get_value('leaderboard','data',0)
+                ldb[str(len(ldb.keys()))] = {'username':GD.username,'score':round(self.world.elapsed_time)*10,'difficulty':GD.difficulty,'date':datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"),'debug':CONFIG['debug']}
+                db.update_value('leaderboard','data',0,ldb)
+                db.save()
+            except Exception as e:
+                print(f'Error in exiting(Game): {e}')
+            self.__dict__ = Game(self.SCH).__dict__
+            GAME_MUSIC_CHANNEL0.stop()
+            GAME_MUSIC_CHANNEL0.play(GAME_MUSIC_OST2,-1)

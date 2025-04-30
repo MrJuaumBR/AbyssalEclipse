@@ -21,10 +21,15 @@ class Leaderboard(Screen):
         self.widgets.append(UsernameTextbox)
         self.widgets.append(DifficultyDropdown)
         
+        self.board = db.get_value('leaderboard', 'data', 0).copy()
+        
         self.order()
         
         OrderDropdown.on_change = self.order
-        
+    
+    def opened(self):
+        self.board = db.get_value('leaderboard', 'data', 0).copy()
+    
     def order(self,__=None):
         self.board = db.get_value('leaderboard', 'data', 0).copy()
         order_key = 'score' if OrderDropdown.current_text == 0 else ('date' if OrderDropdown.current_text == 1 else 'username')
@@ -46,10 +51,15 @@ class Leaderboard(Screen):
         
         x, y = 15, 90
         for score in self.board.values():
+            COLOR = COLOR_WHITE
+            if score['difficulty'] == 'easy': COLOR = COLOR_GREEN
+            elif score['difficulty'] == 'medium': COLOR = COLOR_YELLOW
+            elif score['difficulty'] == 'hard': COLOR = COLOR_RED
             pge.draw_rect(Position((x, y)) * RATIO, Position((250, 100)) * RATIO, COLOR_DARK_BACKGROUND, 2, COLOR_LIGHT_BORDER, alpha=230)
-            pge.draw_text(Position((x + 10, y + 10)) * RATIO, LGS.translate(42).format(score["username"]), PS16, COLOR_WHITE)
-            pge.draw_text(Position((x + 10, y + 40)) * RATIO, LGS.translate(43).format(score["score"]), PS16, COLOR_WHITE)
-            pge.draw_text(Position((x + 10, y + 70)) * RATIO, LGS.translate(44).format(score["date"]), PS16, COLOR_WHITE)
+            pge.draw_text(Position((x + 10, y + 10)) * RATIO, LGS.translate(42).format(score["username"]), PS16, COLOR)
+            pge.draw_text(Position((x + 10, y + 40)) * RATIO, LGS.translate(43).format(score["score"]), PS16, COLOR)
+            pge.draw_text(Position((x + 10, y + 70)) * RATIO, LGS.translate(44).format(score["date"]), PS16, COLOR)
+            if score['debug'] == 'True': pge.draw_text(Position((x + 10, y + 100)) * RATIO, "* Debug Game", PS16, COLOR, alpha=230)
             if x * RATIO.x <= 535 * RATIO.x:
                 x += 265  # Adjusted for spacing
             else:
